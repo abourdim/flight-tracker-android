@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flight Tracker — 512 icon</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 512px; height: 512px; overflow: hidden; }
+  body {
+    background: radial-gradient(circle at 30% 25%, color-mix(in srgb, #542276 80%, white) 0%, #542276 45%, #321447 100%);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  body::before {
+    content: '';
+    position: absolute; inset: 28px;
+    border: 8px solid rgba(255,255,255,0.18);
+    border-radius: 50%;
+    box-shadow: inset 0 0 60px rgba(0,0,0,0.25);
+  }
+  body::after {
+    content: '';
+    position: absolute; inset: 60px;
+    border: 3px solid rgba(255,255,255,0.10);
+    border-radius: 50%;
+  }
+  .emoji {
+    font-size: 280px;
+    line-height: 1;
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.45));
+    z-index: 2;
+  }
+</style>
+</head>
+<body>
+  <div class="emoji">✈</div>
+</body>
+</html>

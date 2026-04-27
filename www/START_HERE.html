@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>✈️ Planes in the Sky — Start Here</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri&family=Noto+Kufi+Arabic:wght@400;700&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060e1e;--card:rgba(255,255,255,0.035);--border:rgba(255,255,255,0.06);
+  --text:#e8edf5;--text2:#8b99b0;--text3:#4e5b72;
+  --gold:#fbbf24;--gold2:#f59e0b;--goldDim:rgba(251,191,36,0.12);
+  --blue:#3b82f6;--green:#22c55e;--red:#ef4444;
+  --ff:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--ar:'Noto Kufi Arabic',sans-serif;--amiri:'Amiri',serif;
+}
+html{background:var(--bg);color:var(--text);font-family:var(--ff);scroll-behavior:smooth;overflow-x:hidden}
+body{min-height:100vh;position:relative}
+
+/* Sky gradient bg */
+.sky-bg{position:fixed;inset:0;z-index:0;
+  background:linear-gradient(180deg,#0a0f1a 0%,#0d1528 20%,#111d3a 40%,#162044 55%,#1a2850 70%,#0f1a30 100%);
+}
+.stars{position:fixed;inset:0;z-index:0;overflow:hidden}
+.star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle var(--d) ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:var(--o)}50%{opacity:0.1}}
+
+/* Content */
+.content{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:24px 20px 80px}
+
+/* Bismillah */
+.bismillah{text-align:center;font-family:var(--amiri);font-size:1.1rem;color:var(--gold);opacity:0.5;padding:18px 0 8px;letter-spacing:1px}
+
+/* Hero */
+.hero{text-align:center;padding:40px 0 32px}
+.hero-icon{font-size:3.5rem;display:block;margin-bottom:12px;animation:float 4s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.hero h1{font-size:1.8rem;font-weight:700;letter-spacing:-0.5px;margin-bottom:6px}
+.hero h1 span{color:var(--gold)}
+.hero-sub{font-size:.85rem;color:var(--text2);line-height:1.5;max-width:480px;margin:0 auto}
+.hero-ar{font-family:var(--ar);font-size:.9rem;color:var(--text3);margin-top:6px;direction:rtl}
+.hero-fr{font-size:.8rem;color:var(--text3);margin-top:2px}
+
+/* Big CTA */
+.cta-box{margin:28px auto 36px;text-align:center}
+.cta-link{display:inline-flex;align-items:center;gap:10px;padding:14px 32px;
+  background:linear-gradient(135deg,rgba(251,191,36,0.15),rgba(251,191,36,0.08));
+  border:1px solid rgba(251,191,36,0.25);border-radius:14px;
+  text-decoration:none;color:var(--gold);font-weight:700;font-size:1rem;
+  transition:all .25s;position:relative;overflow:hidden}
+.cta-link:hover{background:linear-gradient(135deg,rgba(251,191,36,0.25),rgba(251,191,36,0.12));border-color:rgba(251,191,36,0.4);transform:translateY(-2px);box-shadow:0 8px 30px rgba(251,191,36,0.1)}
+.cta-link::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(251,191,36,0.06),transparent);transform:translateX(-100%);animation:shimmer 3s ease-in-out infinite}
+@keyframes shimmer{50%{transform:translateX(100%)}100%{transform:translateX(100%)}}
+.cta-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(251,191,36,0.2);font-size:.8rem;font-weight:700;flex-shrink:0}
+.cta-steps{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.cta-step{display:flex;align-items:center;gap:10px;font-size:.78rem;color:var(--text2)}
+.cta-step .num{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid var(--border);display:grid;place-items:center;font-size:.6rem;color:var(--text3);font-weight:600;flex-shrink:0}
+
+/* Section */
+.section{margin-bottom:28px}
+.section-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--text3);margin-bottom:12px;padding-left:2px}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px;transition:all .2s}
+.card:hover{border-color:rgba(255,255,255,0.1);background:rgba(255,255,255,0.05)}
+.card-row{display:flex;align-items:flex-start;gap:12px}
+.card-icon{font-size:1.3rem;flex-shrink:0;width:32px;text-align:center;padding-top:2px}
+.card-body{flex:1;min-width:0}
+.card-title{font-size:.82rem;font-weight:600;margin-bottom:2px}
+.card-desc{font-size:.7rem;color:var(--text2);line-height:1.45}
+.card-file{font-family:var(--mono);font-size:.6rem;color:var(--text3);margin-top:4px;word-break:break-all}
+
+/* Mode pills */
+.modes{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.mode{padding:6px 12px;border-radius:8px;background:var(--card);border:1px solid var(--border);font-size:.68rem;font-weight:600;display:flex;align-items:center;gap:5px;transition:all .2s}
+.mode:hover{border-color:rgba(255,255,255,0.12)}
+.mode-icon{font-size:.85rem}
+.mode-age{font-size:.55rem;color:var(--text3);font-weight:400}
+
+/* File tree */
+.tree{font-family:var(--mono);font-size:.65rem;color:var(--text2);background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;line-height:1.8;overflow-x:auto}
+.tree .dir{color:var(--blue)}
+.tree .file{color:var(--text2)}
+.tree .hl{color:var(--gold);font-weight:500}
+.tree .comment{color:var(--text3)}
+
+/* Specs grid */
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.spec{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center}
+.spec-val{font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:2px}
+.spec-val.gold{color:var(--gold)}
+.spec-label{font-size:.55rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
+
+/* Shortcuts table */
+.shortcuts{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:.7rem}
+.key{font-family:var(--mono);background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:.6rem;color:var(--text);text-align:center;font-weight:500}
+.shortcut-desc{color:var(--text2);padding:3px 0}
+
+/* Troubleshooting */
+.trouble{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border)}
+.trouble:last-child{border:none}
+.trouble-q{font-size:.7rem;font-weight:600;color:var(--text);min-width:120px;flex-shrink:0}
+.trouble-a{font-size:.68rem;color:var(--text2)}
+
+/* Footer */
+.footer{text-align:center;padding:32px 0 20px;border-top:1px solid var(--border);margin-top:20px}
+.footer-brand{font-size:.7rem;color:var(--text3)}
+.footer-brand a{color:var(--gold);text-decoration:none;opacity:0.6;transition:opacity .2s}
+.footer-brand a:hover{opacity:1}
+.footer-copy{font-size:.55rem;color:var(--text3);margin-top:6px;opacity:0.5}
+
+/* Lang tabs */
+.lang-tabs{display:flex;gap:4px;margin-bottom:12px}
+.lang-tab{padding:4px 10px;border-radius:6px;font-size:.6rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text3);transition:all .2s}
+.lang-tab.active{background:var(--goldDim);border-color:rgba(251,191,36,0.2);color:var(--gold)}
+.lang-tab:hover{border-color:rgba(255,255,255,0.1)}
+.lang-group{display:none}.lang-group.active{display:block}
+
+@media(max-width:480px){
+  .hero h1{font-size:1.4rem}
+  .specs{grid-template-columns:1fr 1fr}
+  .trouble{flex-direction:column;gap:2px}
+  .trouble-q{min-width:0}
+}
+</style>
+</head>
+<body>
+
+<div class="sky-bg"></div>
+<div class="stars" id="stars"></div>
+
+<div class="content">
+
+<!-- Bismillah -->
+<div class="bismillah">بسم الله الرحمن الرحيم</div>
+
+<!-- Hero -->
+<div class="hero">
+  <span class="hero-icon">✈️</span>
+  <h1>Planes in the <span>Sky</span></h1>
+  <div class="hero-sub">Real-time flight tracker for kids. Five modes. Nine shapes. Three languages. One HTML file.</div>
+  <div class="hero-fr">Avions dans le Ciel — Traqueur de vols en temps réel</div>
+  <div class="hero-ar">طائرات في السماء — متتبّع رحلات حقيقي</div>
+</div>
+
+<!-- CTA -->
+<div class="cta-box">
+  <a class="cta-link" href="index.html">
+    <span>▶ Open the App</span>
+  </a>
+  <div class="cta-steps">
+    <div class="cta-step"><span class="num">1</span> Open <strong>index.html</strong> in any browser</div>
+    <div class="cta-step"><span class="num">2</span> Allow location — or pick a city</div>
+    <div class="cta-step"><span class="num">3</span> Tap a plane. That's it! ✈️</div>
+  </div>
+</div>
+
+<!-- Five Modes -->
+<div class="section">
+  <div class="section-title">Five Modes</div>
+  <div class="modes">
+    <div class="mode"><span class="mode-icon">🌤️</span> Sky <span class="mode-age">4+</span></div>
+    <div class="mode"><span class="mode-icon">📚</span> Learn <span class="mode-age">6+</span></div>
+    <div class="mode"><span class="mode-icon">📡</span> Pro <span class="mode-age">10+</span></div>
+    <div class="mode"><span class="mode-icon">🔬</span> Expert <span class="mode-age">12+</span></div>
+    <div class="mode"><span class="mode-icon">🕌</span> Heritage <span class="mode-age">all</span></div>
+  </div>
+  <div class="card">
+    <div class="card-desc">Tap the pills at the top — or press keys <strong>1</strong> through <strong>5</strong>. Sky for beauty, Learn for facts, Pro for radar, Expert for METAR and Mach, Heritage for Islamic Golden Age scholars linked to live flight math.</div>
+  </div>
+</div>
+
+<!-- Languages -->
+<div class="section">
+  <div class="section-title">Three Languages</div>
+  <div class="card">
+    <div class="card-row">
+      <div class="card-icon">🌍</div>
+      <div class="card-body">
+        <div class="card-title">EN · FR · AR</div>
+        <div class="card-desc">Auto-detects from your browser. Or tap the language pills in the header. Arabic mode enables full RTL layout and a virtual Arabic keyboard with tashkeel and copy/paste (⌨️ button, bottom-left).</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Specs -->
+<div class="section">
+  <div class="section-title">At a Glance</div>
+  <div class="specs">
+    <div class="spec"><div class="spec-val gold">1</div><div class="spec-label">HTML file</div></div>
+    <div class="spec"><div class="spec-val">194 KB</div><div class="spec-label">Total size</div></div>
+    <div class="spec"><div class="spec-val">5</div><div class="spec-label">Modes</div></div>
+    <div class="spec"><div class="spec-val">9</div><div class="spec-label">Shapes</div></div>
+    <div class="spec"><div class="spec-val">50</div><div class="spec-label">Countries</div></div>
+    <div class="spec"><div class="spec-val">83</div><div class="spec-label">Airlines</div></div>
+    <div class="spec"><div class="spec-val">9</div><div class="spec-label">Scholars</div></div>
+    <div class="spec"><div class="spec-val">0</div><div class="spec-label">Dependencies</div></div>
+  </div>
+</div>
+
+<!-- What's in the Package -->
+<div class="section">
+  <div class="section-title">What's in the Package</div>
+  <div class="tree"><span class="dir">planes-in-the-sky-v1.1/</span>
+│
+├── <span class="hl">START_HERE.html</span>          <span class="comment">← you are here</span>
+├── <span class="hl">index.html</span>               <span class="comment">← THE APP — open this!</span>
+├── <span class="file">README.md</span>                <span class="comment">← project overview</span>
+├── <span class="file">CHANGELOG.md</span>             <span class="comment">← version history</span>
+├── <span class="file">LICENSE</span>                  <span class="comment">← MIT</span>
+│
+├── <span class="dir">hardware/</span>
+│   ├── <span class="file">sdr_receiver.py</span>      <span class="comment">← SDR ADS-B receiver</span>
+│   ├── <span class="file">microbit_makecode.js</span> <span class="comment">← micro:bit (MakeCode)</span>
+│   └── <span class="file">microbit_planes.py</span>   <span class="comment">← micro:bit (Python)</span>
+│
+└── <span class="dir">docs/</span>
+    ├── <span class="dir">en/</span>  HELP · FAQ · SDR · micro:bit · docs.html
+    ├── <span class="dir">fr/</span>  README · HELP · FAQ · SDR · micro:bit
+    └── <span class="dir">ar/</span>  README · HELP · FAQ · SDR · micro:bit</div>
+</div>
+
+<!-- Documentation -->
+<div class="section">
+  <div class="section-title">Documentation</div>
+
+  <div class="lang-tabs">
+    <button class="lang-tab active" onclick="showLang('en')">English</button>
+    <button class="lang-tab" onclick="showLang('fr')">Français</button>
+    <button class="lang-tab" onclick="showLang('ar')">العربية</button>
+  </div>
+
+  <div class="lang-group active" id="lang-en">
+    <div class="card"><div class="card-row"><div class="card-icon">📖</div><div class="card-body"><div class="card-title">User Guide</div><div class="card-desc">How to use every feature — modes, search, zoom, audio, alerts.</div><div class="card-file"><a href="docs/en/HELP.md" style="color:var(--blue)">docs/en/HELP.md</a></div></div></div></div>
+    <div class="card"><div class="card-row"><div class="card-icon">❓</div><div class="card-body"><div class="card-title">FAQ</div><div class="card-desc">30+ questions answered — data, modes, shapes, audio, classroom ideas.</div><div class="card-file"><a href="docs/en/FAQ.md" style="color:var(--blue)">docs/en/FAQ.md</a></div></div></div></div>
+    <div class="card"><div class="card-row"><div class="card-icon">📡</div><div class="card-body"><div class="card-title">SDR Setup Guide</div><div class="card-desc">RTL-SDR dongle installation, Raspberry Pi deployment, dump1090, PiAware.</div><div class="card-file"><a href="docs/en/SDR_GUIDE.md" style="color:var(--blue)">docs/en/SDR_GUIDE.md</a></div></div></div></div>
+    <div class="card"><div class="card-row"><div class="card-icon">🔌</div><div class="card-body"><div class="card-title">micro:bit Guide</div><div class="card-desc">Flash, pair, display modes — LED radar, compass, buzzer alerts.</div><div class="card-file"><a href="docs/en/MICROBIT_GUIDE.md" style="color:var(--blue)">docs/en/MICROBIT_GUIDE.md</a></div></div></div></div>
+    <div class="card"><div class="card-row"><div class="card-icon">🌐</div><div class="card-body"><div class="card-title">Interactive Docs</div><div class="card-desc">Browsable documentation with tabs — open in any browser.</div><div class="card-file"><a href="docs/en/docs.html" style="color:var(--blue)">docs/en/docs.html</a></div></div></div></div>
+  </div>
+
+  <div class="lang-group" id="lang-fr">
+    <div class="card"><div class="card-row"><div class="card-icon">📄</div><div class="card-body"><div class="card-title">Présentation du Projet</div><div class="card-desc">Vue d'ensemble, fonctionnalités, spécifications techniques.</div><div class="card-file"><a href="docs/fr/README_FR.md" style="color:var(--blue)">docs/fr/README_FR.md</a></div></div></div></div>
+    <div class="card"><div class="card-row"><div class="card-icon">📖</div><div class="card-body"><div class="card-title">Guide de l'Utilisateur</div><div class="card-desc">Modes, recherche, zoom, audio, alertes de proximité.</div><div class="card-file"><a href="docs/fr/HELP_FR.md" style="color:var(--blue)">docs/fr/HELP_FR.md</a></div></div></div></div>
+    <div class="card"><div class="card-row"><div class="card-icon">❓</div><div class="card-body"><div class="card-title">Questions Fréquentes</div><div class="card-desc">30+ questions — données, modes, formes, audio, idées pédagogiques.</div><div class="card-file"><a href="docs/fr/FAQ_FR.md" style="color:var(--blue)">docs/fr/FAQ_FR.md</a></div></div></div></div>
+    <div class="card"><div class="card-row"><div class="card-icon">📡</div><div class="card-body"><div class="card-title">Guide SDR</div><div class="card-desc">Installation RTL-SDR, déploiement Raspberry Pi, dump1090, PiAware.</div><div class="card-file"><a href="docs/fr/SDR_GUIDE_FR.md" style="color:var(--blue)">docs/fr/SDR_GUIDE_FR.md</a></div></div></div></div>
+    <div class="card"><div class="card-row"><div class="card-icon">🔌</div><div class="card-body"><div class="card-title">Guide micro:bit</div><div class="card-desc">Flasher, appairer, modes d'affichage — radar LED, boussole, alertes.</div><div class="card-file"><a href="docs/fr/MICROBIT_GUIDE_FR.md" style="color:var(--blue)">docs/fr/MICROBIT_GUIDE_FR.md</a></div></div></div></div>
+  </div>
+
+  <div class="lang-group" id="lang-ar" style="direction:rtl;font-family:var(--ar),var(--ff)">
+    <div class="card"><div class="card-row"><div class="card-icon">📄</div><div class="card-body"><div class="card-title">نظرة عامة على المشروع</div><div class="card-desc">الميزات والمواصفات التقنية والبدء السريع.</div><div class="card-file"><a href="docs/ar/README_AR.md" style="color:var(--blue)">docs/ar/README_AR.md</a></div></div></div></div>
+    <div class="card"><div class="card-row"><div class="card-icon">📖</div><div class="card-body"><div class="card-title">دليل المستخدم</div><div class="card-desc">الأنماط، البحث، التكبير، الصوت، تنبيهات القرب.</div><div class="card-file"><a href="docs/ar/HELP_AR.md" style="color:var(--blue)">docs/ar/HELP_AR.md</a></div></div></div></div>
+    <div class="card"><div class="card-row"><div class="card-icon">❓</div><div class="card-body"><div class="card-title">الأسئلة الشائعة</div><div class="card-desc">+30 سؤالاً — البيانات، الأنماط، الأشكال، الصوت، أفكار تعليمية.</div><div class="card-file"><a href="docs/ar/FAQ_AR.md" style="color:var(--blue)">docs/ar/FAQ_AR.md</a></div></div></div></div>
+    <div class="card"><div class="card-row"><div class="card-icon">📡</div><div class="card-body"><div class="card-title">دليل إعداد SDR</div><div class="card-desc">تثبيت RTL-SDR، نشر Raspberry Pi، dump1090، PiAware.</div><div class="card-file"><a href="docs/ar/SDR_GUIDE_AR.md" style="color:var(--blue)">docs/ar/SDR_GUIDE_AR.md</a></div></div></div></div>
+    <div class="card"><div class="card-row"><div class="card-icon">🔌</div><div class="card-body"><div class="card-title">دليل micro:bit</div><div class="card-desc">تفليش، إقران، أوضاع العرض — رادار LED، بوصلة، تنبيهات.</div><div class="card-file"><a href="docs/ar/MICROBIT_GUIDE_AR.md" style="color:var(--blue)">docs/ar/MICROBIT_GUIDE_AR.md</a></div></div></div></div>
+  </div>
+</div>
+
+<!-- Optional Hardware -->
+<div class="section">
+  <div class="section-title">Optional Hardware</div>
+  <div class="card">
+    <div class="card-row">
+      <div class="card-icon">📡</div>
+      <div class="card-body">
+        <div class="card-title">SDR Receiver — Live ADS-B without internet</div>
+        <div class="card-desc">RTL-SDR dongle (~$25) receives real aircraft radio signals on 1090 MHz. No internet needed. Perfect for field trips and camping.</div>
+        <div class="card-file" style="margin-top:8px;font-family:var(--mono);font-size:.6rem;color:var(--green);line-height:1.8">
+pip install pyModeS flask flask-cors<br>
+python3 hardware/sdr_receiver.py --lat 48.86 --lon 2.35<br>
+<span style="color:var(--text3)">→ In app: tap 📡 → Connect → http://localhost:8090</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-row">
+      <div class="card-icon">🔌</div>
+      <div class="card-body">
+        <div class="card-title">BBC micro:bit — Physical control tower</div>
+        <div class="card-desc">LED radar, plane counter, compass pointer, buzzer alerts. V2 recommended. Chrome/Edge only (Web Bluetooth).</div>
+        <div class="card-file" style="margin-top:8px;font-family:var(--mono);font-size:.6rem;color:var(--green);line-height:1.8">
+Flash hardware/microbit_makecode.js to micro:bit<br>
+<span style="color:var(--text3)">→ In app: tap 🔌 → Select via Bluetooth</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Keyboard Shortcuts -->
+<div class="section">
+  <div class="section-title">Keyboard Shortcuts</div>
+  <div class="card" style="padding:12px 16px">
+    <div class="shortcuts">
+      <span class="key">1–5</span><span class="shortcut-desc">Switch modes</span>
+      <span class="key">S</span><span class="shortcut-desc">Cycle aircraft shape</span>
+      <span class="key">F</span><span class="shortcut-desc">Search countries & airlines</span>
+      <span class="key">D</span><span class="shortcut-desc">Toggle demo mode</span>
+      <span class="key">+ −</span><span class="shortcut-desc">Zoom in / out</span>
+      <span class="key">R</span><span class="shortcut-desc">Reset view</span>
+      <span class="key">Esc</span><span class="shortcut-desc">Close panels</span>
+    </div>
+  </div>
+</div>
+
+<!-- Troubleshooting -->
+<div class="section">
+  <div class="section-title">Troubleshooting</div>
+  <div class="card" style="padding:10px 16px">
+    <div class="trouble"><div class="trouble-q">No planes?</div><div class="trouble-a">Wait 10 sec, or press <strong>D</strong> for demo mode</div></div>
+    <div class="trouble"><div class="trouble-q">Location denied?</div><div class="trouble-a">Pick a city from the list instead</div></div>
+    <div class="trouble"><div class="trouble-q">Black sky?</div><div class="trouble-a">It's nighttime at your location</div></div>
+    <div class="trouble"><div class="trouble-q">No sound?</div><div class="trouble-a">Tap the 🔇 button to enable audio</div></div>
+    <div class="trouble"><div class="trouble-q">micro:bit won't pair?</div><div class="trouble-a">Use Chrome or Edge (Web Bluetooth)</div></div>
+    <div class="trouble"><div class="trouble-q">SDR can't reach?</div><div class="trouble-a">Check that sdr_receiver.py is running</div></div>
+  </div>
+</div>
+
+<!-- For Teachers -->
+<div class="section">
+  <div class="section-title">For Teachers</div>
+  <div class="card">
+    <div class="card-desc" style="line-height:1.6">
+      Email <strong>index.html</strong> to students — it just works. No accounts, no logins, no data collected. Five modes form a natural lesson progression. Covers geography, math, science, history, and coding in one app. Heritage mode connects Islamic Golden Age scholars to live STEM. Students can read and modify the source code. See the FAQ for classroom lesson ideas.
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <div class="bismillah" style="font-size:.9rem;padding:0 0 12px;opacity:0.35">بسم الله الرحمن الرحيم</div>
+  <div class="footer-brand">Made with ❤️ by <a href="https://workshop-diy.org" target="_blank">workshop-diy.org</a></div>
+  <div class="footer-copy">MIT License · v1.1 · 2026</div>
+</div>
+
+</div>
+
+<script>
+// Stars
+(function(){
+  const c=document.getElementById('stars');
+  for(let i=0;i<80;i++){
+    const s=document.createElement('div');s.className='star';
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;--o:${0.3+Math.random()*0.7};--d:${2+Math.random()*4}s;animation-delay:${Math.random()*4}s;width:${1+Math.random()*1.5}px;height:${1+Math.random()*1.5}px`;
+    c.appendChild(s);
+  }
+})();
+
+// Lang tabs
+function showLang(lang){
+  document.querySelectorAll('.lang-tab').forEach(t=>t.classList.toggle('active',t.textContent.trim()==={en:'English',fr:'Français',ar:'العربية'}[lang]));
+  document.querySelectorAll('.lang-group').forEach(g=>g.classList.toggle('active',g.id==='lang-'+lang));
+}
+</script>
+</body>
+</html>

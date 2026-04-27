@@ -1,0 +1,25 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# macOS
+.DS_Store
+
+# Build outputs (duplicated by android/.gitignore but safe here too)
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+
+# Keystore — NEVER commit
+*.jks
+*.keystore
+keystore.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Capacitor / web
+www/.DS_Store

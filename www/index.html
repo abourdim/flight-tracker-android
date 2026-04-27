@@ -1,0 +1,2789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="cordova.js"></script>
+<script src="cordova_plugins.js"></script>
+<script src="web-bluetooth-shim.js"></script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Planes in the Sky — Ultimate Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Amiri:wght@400;700&family=Noto+Kufi+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ff:'Fredoka',sans-serif;--fm:'JetBrains Mono',monospace;--fa:'Amiri',serif;--far:'Noto Kufi Arabic',sans-serif;--accent:#fbbf24;--ib:rgba(6,14,30,0.94);--text:#eef4fa;--text2:#a0bcd5;--text3:#607890;--green:#34d399;--red:#f87171;--blue:#60a5fa;--purple:#a78bfa;--orange:#fb923c;--expert:#c084fc;--heritage:#d4a853;--heritage-bg:rgba(212,168,83,0.06)}
+
+/* Bismillah */
+#bismillah{position:fixed;top:0;left:0;right:0;z-index:40;text-align:center;padding:2px 0;font-family:var(--fa);font-size:.65rem;color:rgba(212,168,83,0.45);letter-spacing:.08em;border-bottom:1px solid rgba(212,168,83,0.08);background:rgba(5,10,20,0.6);backdrop-filter:blur(8px);direction:rtl;pointer-events:none}
+
+/* Language Selector */
+#langSel{display:flex;gap:0;margin-right:4px}
+.lang-btn{font-family:var(--ff);font-size:.45rem;font-weight:700;padding:3px 6px;border:none;cursor:pointer;background:transparent;color:var(--text3);transition:all .2s;text-transform:uppercase;letter-spacing:.04em}
+.lang-btn.active{color:var(--accent)}
+.lang-btn:hover{color:var(--text)}
+.lang-sep{color:var(--text3);font-size:.45rem;opacity:.3;align-self:center}
+
+/* Footer */
+#appFooter{position:fixed;bottom:0;left:0;right:0;z-index:15;display:flex;align-items:center;justify-content:center;gap:8px;padding:3px 12px;pointer-events:none}
+#appFooter a{pointer-events:auto;text-decoration:none;display:flex;align-items:center;gap:6px;opacity:.25;transition:opacity .3s}
+#appFooter a:hover{opacity:.5}
+#appFooter img{height:18px;filter:invert(1)}
+#appFooter span{font-family:var(--fm);font-size:.42rem;color:var(--text3);letter-spacing:.02em}
+
+/* RTL Support */
+[dir="rtl"]{font-family:var(--far),var(--ff),sans-serif}
+[dir="rtl"] #hdr{flex-direction:row-reverse}
+[dir="rtl"] #hdr h1{font-family:var(--far),var(--ff),sans-serif}
+[dir="rtl"] .mBtn{font-family:var(--far),var(--ff),sans-serif}
+[dir="rtl"] #searchInput{direction:rtl;text-align:right;font-family:var(--far),var(--ff),sans-serif}
+[dir="rtl"] #infoPanel{font-family:var(--far),var(--ff),sans-serif}
+[dir="rtl"] .ii .lb,[dir="rtl"] .ei .lb{text-align:right}
+[dir="rtl"] .ii .vl,[dir="rtl"] .ei .vl{text-align:left}
+[dir="rtl"] .cc-info{direction:rtl;text-align:right}
+[dir="rtl"] #locPicker{font-family:var(--far),var(--ff),sans-serif}
+[dir="rtl"] #locPicker h2,[dir="rtl"] #locPicker .sub{font-family:var(--far),var(--ff),sans-serif}
+[dir="rtl"] .lb2{font-family:var(--far),var(--ff),sans-serif}
+[dir="rtl"] .tl-desc,[dir="rtl"] .tl-math{direction:rtl;text-align:right;font-family:var(--far),var(--ff),sans-serif}
+[dir="rtl"] .hp-title,[dir="rtl"] .hp-sec-title{font-family:var(--far),var(--ff),sans-serif}
+[dir="rtl"] .so-name{font-family:var(--far),var(--ff),sans-serif}
+[dir="rtl"] #sdrPanel{font-family:var(--far),var(--ff),sans-serif;direction:rtl}
+[dir="rtl"] .sdr-stat{flex-direction:row-reverse}
+[dir="rtl"] .ld-text{font-family:var(--far),var(--ff),sans-serif}
+[dir="rtl"] #proxAlert{font-family:var(--far),var(--ff),sans-serif;direction:rtl}
+[dir="rtl"] .nm-title{font-family:var(--far),var(--ff),sans-serif}
+[dir="rtl"] .ep-title{font-family:var(--far),var(--ff),sans-serif}
+
+/* Arabic Virtual Keyboard */
+#arkb-toggle{position:fixed;bottom:42px;left:10px;z-index:22;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,0.08);background:rgba(6,14,30,0.85);backdrop-filter:blur(10px);display:none;place-items:center;cursor:pointer;font-size:.85rem;color:var(--text2);transition:all .25s;pointer-events:auto}
+#arkb-toggle.show{display:grid}
+#arkb-toggle.active{background:rgba(251,191,36,0.15);border-color:rgba(251,191,36,0.3);color:var(--accent)}
+#arkb{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(6,14,30,0.97);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.08);padding:6px 4px 10px;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);touch-action:manipulation}
+#arkb.show{transform:translateY(0)}
+#arkb-bar{display:flex;align-items:center;justify-content:space-between;padding:0 8px 4px;margin-bottom:2px}
+#arkb-bar .arkb-title{font-family:var(--far);font-size:.55rem;color:var(--text3);font-weight:600}
+#arkb-bar .arkb-actions{display:flex;gap:4px}
+.arkb-act{font-size:.5rem;font-weight:600;padding:3px 8px;border-radius:6px;border:none;cursor:pointer;color:var(--text2);background:rgba(255,255,255,0.06);transition:all .2s;font-family:var(--ff)}
+.arkb-act:hover,.arkb-act:active{background:rgba(255,255,255,0.12);color:var(--text)}
+.arkb-act.accent{color:var(--accent);background:rgba(251,191,36,0.1)}
+.arkb-act.accent:hover{background:rgba(251,191,36,0.2)}
+#arkb-preview{min-height:28px;margin:0 6px 4px;padding:5px 10px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);font-family:var(--far);font-size:.8rem;color:var(--text);direction:rtl;text-align:right;overflow-x:auto;white-space:nowrap;display:flex;align-items:center;gap:6px}
+#arkb-preview-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+#arkb-preview-cursor{width:1px;height:14px;background:var(--accent);animation:arkbBlink 1s step-end infinite;flex-shrink:0}
+@keyframes arkbBlink{50%{opacity:0}}
+.arkb-row{display:flex;justify-content:center;gap:3px;margin-bottom:3px}
+.arkb-key{min-width:28px;height:36px;border-radius:6px;border:none;background:rgba(255,255,255,0.07);color:var(--text);font-family:var(--far);font-size:.85rem;cursor:pointer;display:grid;place-items:center;transition:all .12s;user-select:none;-webkit-user-select:none;touch-action:manipulation;position:relative}
+.arkb-key:hover{background:rgba(255,255,255,0.12)}
+.arkb-key:active{background:rgba(251,191,36,0.2);transform:scale(0.92)}
+.arkb-key.wide{min-width:44px;font-size:.6rem;font-family:var(--ff);color:var(--text2)}
+.arkb-key.space{flex:1;max-width:180px;font-size:.5rem;font-family:var(--ff);color:var(--text3)}
+.arkb-key.send{min-width:50px;background:rgba(251,191,36,0.12);color:var(--accent);font-size:.55rem;font-family:var(--ff);font-weight:700}
+.arkb-key.send:active{background:rgba(251,191,36,0.3)}
+@media(max-width:380px){.arkb-key{min-width:24px;height:32px;font-size:.75rem}}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;font-family:var(--ff);background:#050a14;color:var(--text);user-select:none;touch-action:none}
+#skyCanvas{position:fixed;inset:0;z-index:0}
+#hdr{position:fixed;top:18px;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:linear-gradient(180deg,rgba(5,10,20,0.88)0%,transparent 100%);pointer-events:none}
+#hdr>*{pointer-events:auto}
+#hdr h1{font-size:1.05rem;font-weight:700;display:flex;align-items:center;gap:4px}
+.pill{background:rgba(255,255,255,0.1);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.1);border-radius:28px;padding:3px 10px;font-size:.68rem;font-weight:600;display:flex;align-items:center;gap:4px;transition:transform .2s}
+.pill.bump{animation:countBump .4s ease-out}
+@keyframes countBump{0%{transform:scale(1)}30%{transform:scale(1.15)}100%{transform:scale(1)}}
+.pill .n{color:var(--accent);font-family:var(--fm)}
+
+/* Proximity alert */
+#proxAlert{position:fixed;top:62px;left:50%;transform:translateX(-50%) translateY(-60px);z-index:21;background:rgba(251,191,36,0.12);backdrop-filter:blur(12px);border:1px solid rgba(251,191,36,0.2);border-radius:20px;padding:4px 14px;font-size:.6rem;font-weight:600;color:var(--accent);opacity:0;transition:all .4s;pointer-events:none;white-space:nowrap}
+#proxAlert.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#modeBar{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:2px;background:rgba(5,10,20,0.82);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.07);border-radius:26px;padding:2px}
+.mBtn{font-family:var(--ff);font-size:.52rem;font-weight:600;padding:4px 8px;border-radius:22px;border:none;cursor:pointer;background:transparent;color:var(--text2);transition:all .25s;text-transform:uppercase;letter-spacing:.03em}
+.mBtn.active{background:rgba(91,163,217,0.2);color:#fff}
+.mBtn[data-mode="pro"].active{background:rgba(246,173,85,0.12);color:var(--orange)}
+.mBtn[data-mode="expert"].active{background:rgba(192,132,252,0.12);color:var(--expert)}
+.mBtn[data-mode="heritage"].active{background:rgba(212,168,83,0.15);color:var(--heritage)}
+
+/* Heritage notification toast */
+
+/* Country Search/Filter */
+
+/* Onboarding Tutorial */
+
+/* Zoom Indicator */
+#zoomInd{position:fixed;bottom:52px;right:10px;z-index:20;background:rgba(5,10,20,0.7);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:3px 10px;font-family:var(--fm);font-size:.6rem;color:var(--text2);opacity:0;transition:opacity .3s;pointer-events:none}
+#zoomInd.show{opacity:1}
+
+/* Compass Rose */
+#compass{position:fixed;bottom:10px;right:10px;z-index:20;width:44px;height:44px;border-radius:50%;background:rgba(5,10,20,0.6);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;transition:opacity .3s}
+#compass canvas{width:40px;height:40px}
+
+/* Loading State */
+#loadingOverlay{position:fixed;inset:0;z-index:45;background:rgba(5,10,20,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:opacity .5s}
+#loadingOverlay.hidden{opacity:0;pointer-events:none}
+.ld-plane{font-size:2.5rem;animation:ldBounce 1.5s ease-in-out infinite}
+@keyframes ldBounce{0%,100%{transform:translateY(0) rotate(-20deg)}50%{transform:translateY(-12px) rotate(-20deg)}}
+.ld-text{font-size:.8rem;color:var(--text2);animation:ldPulse 1.5s ease-in-out infinite}
+@keyframes ldPulse{0%,100%{opacity:.5}50%{opacity:1}}
+.ld-dots::after{content:'';animation:ldDots 1.5s steps(4) infinite}
+@keyframes ldDots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+
+/* Distance rings */
+.ring-label{font-family:var(--fm);font-size:6px;fill:rgba(255,255,255,0.08)}
+
+/* Shape Selector */
+#shapeBtn{position:fixed;top:24px;right:86px;z-index:21;background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);border-radius:50%;width:30px;height:30px;display:grid;place-items:center;cursor:pointer;font-size:.75rem;color:var(--text2);transition:all .25s}
+
+/* micro:bit Connection */
+#microbitBtn{position:fixed;top:24px;right:122px;z-index:21;background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);border-radius:50%;width:30px;height:30px;display:grid;place-items:center;cursor:pointer;font-size:.7rem;color:var(--text2);transition:all .25s}
+
+/* SDR Source */
+#sdrBtn{position:fixed;top:24px;right:158px;z-index:21;background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);border-radius:50%;width:30px;height:30px;display:grid;place-items:center;cursor:pointer;font-size:.7rem;color:var(--text2);transition:all .25s}
+#sdrBtn:hover{background:rgba(96,165,250,0.15);color:var(--blue);border-color:rgba(96,165,250,0.2)}
+#sdrBtn.connected{background:rgba(52,211,153,0.15);color:#34d399;border-color:rgba(52,211,153,0.25);animation:mbPulse 2s ease-in-out infinite}
+#sdrPanel{position:fixed;top:58px;right:140px;z-index:30;background:rgba(6,14,30,0.95);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:12px;width:240px;display:none;box-shadow:0 8px 32px rgba(0,0,0,0.5)}
+#sdrPanel.show{display:block}
+#sdrPanel h3{font-size:.75rem;font-weight:700;margin:0 0 8px;color:var(--text1)}
+#sdrPanel .sdr-row{display:flex;gap:6px;margin-bottom:6px}
+#sdrPanel input{flex:1;font-family:var(--fm);font-size:.65rem;padding:5px 8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:var(--text1);outline:none}
+#sdrPanel input:focus{border-color:rgba(96,165,250,0.3)}
+#sdrPanel .sdr-btn{font-family:var(--ff);font-size:.6rem;font-weight:600;padding:5px 12px;border-radius:8px;border:none;cursor:pointer;transition:all .2s}
+.sdr-connect{background:var(--accent);color:#050a14}
+.sdr-disconnect{background:rgba(255,80,80,0.2);color:#ff6b6b;border:1px solid rgba(255,80,80,0.2)!important}
+#sdrPanel .sdr-status{font-size:.55rem;color:var(--text3);margin-top:4px}
+#sdrPanel .sdr-stats{font-size:.55rem;color:var(--text3);margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.05)}
+.sdr-stat{display:flex;justify-content:space-between;margin:2px 0}
+.sdr-stat .sv{color:var(--accent);font-family:var(--fm)}
+#sdrBadge{position:fixed;bottom:8px;right:8px;z-index:25;background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.25);border-radius:16px;padding:2px 10px;font-size:.5rem;font-weight:600;color:#34d399;font-family:var(--ff);display:none;align-items:center;gap:4px}
+#sdrBadge.show{display:flex}
+#microbitBtn:hover{background:rgba(96,165,250,0.15);color:var(--blue);border-color:rgba(96,165,250,0.2)}
+#microbitBtn.connected{background:rgba(52,211,153,0.15);color:#34d399;border-color:rgba(52,211,153,0.25);animation:mbPulse 2s ease-in-out infinite}
+@keyframes mbPulse{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}50%{box-shadow:0 0 0 4px rgba(52,211,153,0.15)}}
+#mbStatus{position:fixed;top:58px;right:110px;z-index:21;background:rgba(6,14,30,0.92);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:8px 12px;font-size:.6rem;color:var(--text2);opacity:0;pointer-events:none;transition:all .3s;max-width:180px;text-align:center}
+#mbStatus.show{opacity:1;pointer-events:auto}
+.mb-dot{display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.mb-dot.on{background:#34d399}.mb-dot.off{background:rgba(255,255,255,0.2)}
+#shapeBtn:hover,#shapeBtn.active{background:rgba(96,165,250,0.15);color:var(--blue);border-color:rgba(96,165,250,0.2)}
+#shapePicker{position:fixed;top:56px;right:46px;z-index:21;background:rgba(6,14,30,0.95);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:8px;width:200px;display:none;flex-wrap:wrap;gap:4px;box-shadow:0 8px 32px rgba(0,0,0,0.5)}
+#shapePicker.show{display:flex}
+.shape-opt{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:10px;cursor:pointer;transition:all .15s;width:60px;border:1px solid transparent}
+.shape-opt:hover{background:rgba(255,255,255,0.05)}
+.shape-opt.active{background:rgba(96,165,250,0.12);border-color:rgba(96,165,250,0.2)}
+.shape-opt .so-icon{font-size:1.2rem;line-height:1}
+.shape-opt .so-name{font-size:.5rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+
+/* Onboarding Tutorial */
+#onboarding{position:fixed;inset:0;z-index:50;background:rgba(5,10,20,0.97);backdrop-filter:blur(20px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .5s}
+#onboarding.show{opacity:1;pointer-events:auto}
+.ob-card{max-width:340px;text-align:center;animation:obFloat 3s ease-in-out infinite}
+@keyframes obFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.ob-emoji{font-size:3rem;margin-bottom:12px;filter:drop-shadow(0 4px 12px rgba(251,191,36,0.3))}
+.ob-title{font-size:1.3rem;font-weight:700;margin-bottom:8px;color:var(--accent)}
+.ob-text{font-size:.78rem;color:var(--text2);line-height:1.6;margin-bottom:16px}
+.ob-steps{display:flex;gap:4px;justify-content:center;margin-bottom:16px}
+.ob-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.15);transition:all .3s}
+.ob-dot.active{background:var(--accent);width:18px;border-radius:3px}
+.ob-nav{display:flex;gap:10px;align-items:center}
+.ob-btn{font-family:var(--ff);font-size:.75rem;font-weight:600;padding:8px 20px;border-radius:20px;border:none;cursor:pointer;transition:all .2s}
+.ob-next{background:var(--accent);color:#050a14}
+.ob-skip{background:transparent;color:var(--text3);border:1px solid rgba(255,255,255,0.1)}
+.ob-skip:hover{color:var(--text2);border-color:rgba(255,255,255,0.2)}
+.ob-hint{position:fixed;z-index:22;background:rgba(251,191,36,0.12);backdrop-filter:blur(10px);border:1px solid rgba(251,191,36,0.2);border-radius:12px;padding:6px 12px;font-size:.6rem;font-weight:600;color:var(--accent);pointer-events:none;opacity:0;transition:all .4s;white-space:nowrap}
+.ob-hint.show{opacity:1}
+
+/* Country Search/Filter */
+#searchBtn{position:fixed;top:24px;right:50px;z-index:21;background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);border-radius:50%;width:30px;height:30px;display:grid;place-items:center;cursor:pointer;font-size:.75rem;color:var(--text2);transition:all .25s}
+#searchBtn:hover,#searchBtn.active{background:rgba(251,191,36,0.15);color:var(--accent);border-color:rgba(251,191,36,0.2)}
+#searchBar{position:fixed;top:56px;right:10px;z-index:21;background:rgba(6,14,30,0.95);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:6px 8px;width:220px;display:none;flex-direction:column;gap:4px;box-shadow:0 8px 32px rgba(0,0,0,0.5)}
+#searchBar.show{display:flex}
+#searchInput{font-family:var(--ff);font-size:.75rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px 10px 6px 28px;color:var(--text);outline:none;width:100%;transition:border-color .2s}
+#searchInput:focus{border-color:rgba(251,191,36,0.3)}
+#searchInput::placeholder{color:var(--text3)}
+.search-icon-inner{position:absolute;left:16px;top:13px;font-size:.65rem;pointer-events:none;opacity:.4}
+#suggestions{max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
+#suggestions::-webkit-scrollbar{display:none}
+.sug-item{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:8px;cursor:pointer;transition:background .15s;font-size:.7rem;color:var(--text2)}
+.sug-item:hover,.sug-item.highlighted{background:rgba(251,191,36,0.1);color:var(--text)}
+.sug-flag{font-size:.9rem}
+.sug-name{flex:1}
+.sug-count{font-family:var(--fm);font-size:.6rem;color:var(--text3);background:rgba(255,255,255,0.05);padding:1px 5px;border-radius:8px}
+#filterPill{position:fixed;top:66px;right:10px;z-index:21;background:rgba(251,191,36,0.12);backdrop-filter:blur(12px);border:1px solid rgba(251,191,36,0.2);border-radius:20px;padding:3px 10px 3px 8px;font-size:.65rem;font-weight:600;color:var(--accent);display:none;align-items:center;gap:5px;cursor:pointer;transition:all .25s;font-family:var(--ff)}
+#filterPill.show{display:flex}
+#filterPill:hover{background:rgba(251,191,36,0.2)}
+.fp-close{font-size:.5rem;opacity:.6;margin-left:2px}
+#noMatchMsg{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:15;background:rgba(6,14,30,0.9);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:16px 24px;text-align:center;display:none;font-size:.75rem;color:var(--text2)}
+#noMatchMsg.show{display:block}
+#noMatchMsg .nm-title{font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:4px}
+#noMatchMsg .nm-btn{display:inline-block;margin-top:8px;padding:4px 14px;background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.2);border-radius:16px;color:var(--accent);font-size:.65rem;font-weight:600;cursor:pointer;font-family:var(--ff)}
+
+/* Heritage notification toast */
+#heritageToast{position:fixed;top:88px;left:50%;transform:translateX(-50%)translateY(-100px);z-index:30;background:linear-gradient(135deg,rgba(212,168,83,0.12),rgba(6,14,30,0.95));backdrop-filter:blur(20px);border:1px solid rgba(212,168,83,0.25);border-radius:16px;padding:14px 18px;width:min(92vw,360px);opacity:0;transition:all .5s cubic-bezier(.4,0,.2,1);pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,0.4)}
+#heritageToast.show{opacity:1;transform:translateX(-50%)translateY(0);pointer-events:auto}
+.ht-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.ht-icon{font-size:1.6rem}
+.ht-name{font-size:.9rem;font-weight:700;color:var(--heritage)}
+.ht-arabic{font-family:var(--fa);font-size:.95rem;color:var(--heritage);opacity:.7;direction:rtl}
+.ht-dates{font-size:.6rem;color:var(--text3)}
+.ht-body{font-size:.72rem;color:var(--text2);line-height:1.5}
+.ht-connection{margin-top:6px;font-size:.62rem;color:var(--heritage);font-style:italic;border-top:1px solid rgba(212,168,83,0.1);padding-top:6px}
+.ht-close{position:absolute;top:8px;right:10px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:.75rem}
+
+/* Heritage Panel (full mode) */
+#heritagePanel{position:fixed;inset:0;z-index:28;background:rgba(5,10,20,0.97);backdrop-filter:blur(20px);opacity:0;pointer-events:none;transition:opacity .5s;overflow-y:auto;padding:60px 16px 30px}
+#heritagePanel.show{opacity:1;pointer-events:auto}
+#heritagePanel::-webkit-scrollbar{display:none}
+.hp-close{position:fixed;top:10px;right:14px;z-index:29;background:rgba(255,255,255,0.08);border:none;color:var(--text2);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;display:grid;place-items:center}
+.hp-title{text-align:center;font-size:1.3rem;font-weight:700;color:var(--heritage);margin-bottom:4px}
+.hp-subtitle{text-align:center;font-size:.75rem;color:var(--text2);margin-bottom:24px}
+
+/* Timeline */
+.timeline{position:relative;padding-left:24px;margin-bottom:30px}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,rgba(212,168,83,0.4),rgba(212,168,83,0.05))}
+.tl-item{position:relative;margin-bottom:16px;padding:12px 14px;background:var(--heritage-bg);border:1px solid rgba(212,168,83,0.1);border-radius:12px}
+.tl-item::before{content:'';position:absolute;left:-20px;top:16px;width:10px;height:10px;border-radius:50%;background:var(--heritage);box-shadow:0 0 8px rgba(212,168,83,0.4)}
+.tl-item.modern::before{background:var(--blue)}
+.tl-year{font-family:var(--fm);font-size:.6rem;color:var(--heritage);font-weight:600}
+.tl-name{font-size:.88rem;font-weight:700;margin:2px 0}
+.tl-arabic{font-family:var(--fa);font-size:.82rem;color:var(--heritage);opacity:.6;direction:rtl}
+.tl-desc{font-size:.68rem;color:var(--text2);line-height:1.4;margin-top:4px}
+.tl-math{font-size:.6rem;color:var(--accent);margin-top:4px;padding:4px 8px;background:rgba(251,191,36,0.05);border-radius:6px}
+
+/* Sections */
+.hp-section{margin-bottom:24px}
+.hp-sec-title{font-size:.9rem;font-weight:700;color:var(--heritage);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.hp-sec-title .icon{font-size:1.1rem}
+
+/* Star names grid */
+.star-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.star-card{background:rgba(212,168,83,0.04);border:1px solid rgba(212,168,83,0.08);border-radius:10px;padding:10px}
+.star-card .s-name{font-size:.78rem;font-weight:600;color:var(--heritage)}
+.star-card .s-arabic{font-family:var(--fa);font-size:.72rem;color:var(--heritage);opacity:.6;direction:rtl}
+.star-card .s-meaning{font-size:.6rem;color:var(--text2)}
+.star-card .s-use{font-size:.56rem;color:var(--text3);margin-top:2px}
+
+/* Vocab */
+.vocab-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
+.vocab-chip{background:rgba(212,168,83,0.04);border:1px solid rgba(212,168,83,0.06);border-radius:8px;padding:8px;text-align:center}
+.vocab-chip .vw{font-size:.72rem;font-weight:600;color:var(--heritage)}
+.vocab-chip .vo{font-size:.52rem;color:var(--text3)}
+
+/* Astrolabe comparison */
+.astrolabe-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.ast-side{background:rgba(212,168,83,0.04);border:1px solid rgba(212,168,83,0.08);border-radius:10px;padding:12px;text-align:center}
+.ast-side .ast-icon{font-size:2rem;margin-bottom:6px}
+.ast-side .ast-title{font-size:.72rem;font-weight:700;color:var(--heritage);margin-bottom:4px}
+.ast-side .ast-desc{font-size:.58rem;color:var(--text2);line-height:1.4}
+
+/* Hubs */
+.hub-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.hub-card{background:rgba(212,168,83,0.04);border:1px solid rgba(212,168,83,0.08);border-radius:10px;padding:10px;text-align:center}
+.hub-card .hf{font-size:1.4rem}
+.hub-card .hn{font-size:.7rem;font-weight:600}
+.hub-card .hc{font-size:.52rem;color:var(--text2)}
+
+/* Live connection badge */
+.live-badge{display:inline-flex;align-items:center;gap:4px;font-size:.55rem;color:var(--green);padding:2px 8px;background:rgba(52,211,153,0.08);border-radius:10px;margin-top:4px}
+.live-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Physics card */
+.physics-card{background:rgba(192,132,252,0.04);border:1px solid rgba(192,132,252,0.1);border-radius:10px;padding:12px;margin-top:8px}
+.physics-card .pc-title{font-size:.72rem;font-weight:700;color:var(--expert);margin-bottom:4px}
+.physics-card .pc-eq{font-family:var(--fm);font-size:.65rem;color:var(--accent);margin:4px 0;padding:4px 8px;background:rgba(251,191,36,0.04);border-radius:6px;text-align:center}
+.physics-card .pc-desc{font-size:.6rem;color:var(--text2);line-height:1.4}
+
+/* Shared panels & info from previous phases */
+.epanel{position:fixed;z-index:15;background:rgba(5,10,20,0.9);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.07);border-radius:12px;font-size:.6rem;color:var(--text2);opacity:0;transition:opacity .4s;pointer-events:none;overflow-y:auto;max-height:38vh}
+.epanel.show{opacity:1;pointer-events:auto}
+.epanel::-webkit-scrollbar{display:none}
+.ep-title{font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;position:sticky;top:0;background:inherit;padding:8px 10px 4px;z-index:1}
+.ep-row{display:flex;justify-content:space-between;padding:2px 10px;border-bottom:1px solid rgba(255,255,255,0.02)}
+.ep-row .k{color:var(--text3);font-size:.55rem}.ep-row .v{color:var(--text);font-family:var(--fm);font-weight:600;font-size:.58rem}
+#metarP{top:72px;left:8px;width:195px;padding-bottom:8px}
+#atmosP{top:72px;right:8px;width:180px;padding-bottom:8px}
+#radarOverlay{position:fixed;inset:0;z-index:1;opacity:0;transition:opacity .5s;pointer-events:none}
+#radarOverlay.show{opacity:1}
+.pro-panel{position:fixed;z-index:15;background:rgba(5,10,20,0.88);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.06);border-radius:12px;font-size:.6rem;color:var(--text2);opacity:0;transition:opacity .4s;pointer-events:none}
+.pro-panel.show{opacity:1;pointer-events:auto}
+#sqP{top:72px;left:8px;width:165px;padding:8px 0}
+#wiP{top:72px;right:8px;width:160px;padding:8px 0}
+#exportBtn{position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:16;font-family:var(--fm);font-size:.58rem;padding:3px 12px;border-radius:18px;border:1px solid rgba(192,132,252,0.2);background:rgba(192,132,252,0.08);color:var(--expert);cursor:pointer;opacity:0;transition:opacity .4s;pointer-events:none}
+#exportBtn.show{opacity:1;pointer-events:auto}
+
+/* Info Panel */
+#infoPanel{position:fixed;bottom:6px;left:50%;transform:translateX(-50%)translateY(20px);z-index:25;background:var(--ib);backdrop-filter:blur(20px);border:1px solid rgba(91,163,217,0.18);border-radius:14px;width:min(95vw,400px);opacity:0;pointer-events:none;transition:all .35s;box-shadow:0 8px 36px rgba(0,0,0,0.5);max-height:75vh;overflow-y:auto}
+#infoPanel.show{opacity:1;pointer-events:auto;transform:translateX(-50%)translateY(0)}
+#infoPanel::-webkit-scrollbar{display:none}
+.ih{display:flex;align-items:center;gap:7px;padding:10px 12px 4px}
+.ih .cs{font-family:var(--fm);font-size:.85rem;font-weight:600;color:var(--accent)}
+.ih .al{font-size:.65rem;color:var(--text2)}
+.ic{margin-left:auto;background:rgba(255,255,255,0.08);border:none;color:var(--text2);width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:.75rem;display:grid;place-items:center}
+.ig{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px 12px}
+.ii{background:rgba(255,255,255,0.03);border-radius:7px;padding:5px 7px}
+.ii .lb{font-size:.48rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+.ii .vl{font-size:.72rem;font-weight:600}
+.ii .sb{font-size:.52rem;color:var(--text2)}
+
+/* Heritage info section in info panel */
+.heritage-info{padding:4px 12px 8px;display:none}
+.heritage-info.show{display:block}
+.hi-card{background:linear-gradient(135deg,var(--heritage-bg),rgba(6,14,30,0.3));border:1px solid rgba(212,168,83,0.12);border-radius:10px;padding:10px 12px;margin-bottom:6px}
+.hi-card .hi-title{font-size:.65rem;font-weight:700;color:var(--heritage);margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.hi-card .hi-body{font-size:.58rem;color:var(--text2);line-height:1.4}
+.hi-card .hi-scholar{font-size:.62rem;color:var(--heritage);font-weight:600;margin-top:3px}
+.hi-card .hi-arabic{font-family:var(--fa);font-size:.65rem;color:var(--heritage);opacity:.5;direction:rtl}
+
+.cc{margin:4px 12px 8px;background:linear-gradient(135deg,rgba(251,191,36,0.04),rgba(91,163,217,0.02));border:1px solid rgba(251,191,36,0.08);border-radius:10px;padding:8px 10px}
+.cc .ch{display:flex;align-items:center;gap:7px;margin-bottom:3px}
+.cc .cf{font-size:1.3rem}.cc .cd{font-size:.8rem;font-weight:700}.cc .cs2{font-size:.58rem;color:var(--text2)}
+.cc .cfs{display:flex;gap:3px;flex-wrap:wrap}
+.cc .cft{font-size:.52rem;padding:2px 6px;background:rgba(255,255,255,0.03);border-radius:5px;color:var(--text2)}
+
+.ex-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px 12px}
+.ex-grid.hidden{display:none}
+.ei{background:rgba(192,132,252,0.04);border:1px solid rgba(192,132,252,0.06);border-radius:7px;padding:5px 7px}
+.ei .lb{font-size:.48rem;color:var(--expert);text-transform:uppercase;letter-spacing:.04em}
+.ei .vl{font-size:.7rem;font-weight:600}
+.ei .sb{font-size:.5rem;color:var(--text2)}
+
+#statsBar{position:fixed;bottom:8px;left:8px;z-index:15;display:flex;flex-direction:column;gap:2px;opacity:0;transition:opacity .4s}
+#statsBar.show{opacity:1}
+.sp{background:rgba(5,10,20,0.75);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.04);border-radius:6px;padding:3px 7px;font-size:.52rem;color:var(--text2);display:flex;align-items:center;gap:3px}
+.sp .sv{color:var(--accent);font-family:var(--fm);font-weight:600}
+
+/* Location Picker */
+#locPicker{position:fixed;inset:0;z-index:100;background:rgba(5,10,20,0.96);backdrop-filter:blur(16px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:18px;transition:opacity .4s}
+#locPicker.hidden{opacity:0;pointer-events:none}
+#locPicker h2{font-size:1.4rem;font-weight:700}
+#locPicker .sub{color:var(--text2);font-size:.78rem;text-align:center;max-width:300px}
+.lb2{font-family:var(--ff);font-size:.85rem;font-weight:600;padding:10px 22px;border-radius:11px;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;min-width:180px;justify-content:center}
+.lb2.primary{background:linear-gradient(135deg,#5ba3d9,#2a5a9a);color:#fff;box-shadow:0 4px 16px rgba(42,90,154,0.4)}
+#cityInput{font-family:var(--ff);font-size:.82rem;padding:9px 14px;border-radius:9px;border:1px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.05);color:#fff;width:min(88vw,300px);text-align:center;outline:none}
+#cityInput::placeholder{color:var(--text3)}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:5px;width:min(88vw,300px)}
+.cc2{font-family:var(--ff);font-size:.65rem;padding:7px;border-radius:7px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:var(--text2);cursor:pointer;text-align:center;transition:all .2s}
+.cc2:hover{background:rgba(91,163,217,0.1);color:#fff}
+.od{color:var(--text3);font-size:.6rem;text-transform:uppercase;letter-spacing:.1em}
+.ls{font-size:.65rem;color:var(--text2)}
+</style>
+</head>
+<body>
+
+<div id="locPicker">
+  <h2>✈️ Planes in the Sky</h2>
+  <p class="sub">Five modes including Islamic Aviation Heritage 🕌</p>
+  <button class="lb2 primary" onclick="useGPS()">📍 Use My Location</button>
+  <div class="od">— or pick a city —</div>
+  <input type="text" id="cityInput" placeholder="Type a city..." onkeydown="if(event.key==='Enter')searchCity()">
+  <div class="cg">
+    <div class="cc2" onclick="pickCity(48.8566,2.3522)">🇫🇷 Paris</div>
+    <div class="cc2" onclick="pickCity(51.5074,-0.1278)">🇬🇧 London</div>
+    <div class="cc2" onclick="pickCity(25.2048,55.2708)">🇦🇪 Dubai</div>
+    <div class="cc2" onclick="pickCity(41.0082,28.9784)">🇹🇷 Istanbul</div>
+    <div class="cc2" onclick="pickCity(33.5731,-7.5898)">🇲🇦 Casablanca</div>
+    <div class="cc2" onclick="pickCity(21.4225,39.8262)">🇸🇦 Makkah</div>
+    <div class="cc2" onclick="pickCity(40.6413,-73.7781)">🇺🇸 New York</div>
+    <div class="cc2" onclick="pickCity(35.6762,139.6503)">🇯🇵 Tokyo</div>
+    <div class="cc2" onclick="pickCity(-33.9461,151.1772)">🇦🇺 Sydney</div>
+    <div class="cc2" onclick="pickCity(1.3521,103.8198)">🇸🇬 Singapore</div>
+  </div>
+  <div class="ls" id="locStatus"></div>
+</div>
+
+<div id="onboarding">
+  <div class="ob-card">
+    <div class="ob-emoji" id="obEmoji">✈️</div>
+    <div class="ob-title" id="obTitle">Welcome, Sky Watcher!</div>
+    <div class="ob-text" id="obText">Watch real planes fly over your head in real time. Tap any plane to discover where it's from!</div>
+    <div class="ob-steps" id="obDots"></div>
+    <div class="ob-nav">
+      <button class="ob-btn ob-skip" onclick="skipOnboarding()">Skip</button>
+      <button class="ob-btn ob-next" id="obNext" onclick="nextOnboarding()">Next ✈️</button>
+    </div>
+  </div>
+</div>
+
+<div id="bismillah">بسم الله الرحمن الرحيم</div>
+<div id="hdr"><h1 id="appTitle">✈️ Planes in the Sky</h1><div style="display:flex;align-items:center;gap:6px"><div id="langSel"><button class="lang-btn active" onclick="setLang('en')">EN</button><span class="lang-sep">·</span><button class="lang-btn" onclick="setLang('fr')">FR</button><span class="lang-sep">·</span><button class="lang-btn" onclick="setLang('ar')">AR</button></div><div class="pill">🛩️ <span class="n" id="planeNum">0</span></div><button id="sdrBtn" onclick="toggleSdrPanel()" title="SDR source">📡</button><button id="microbitBtn" onclick="toggleMicrobit()" title="Connect micro:bit">🔌</button><button id="shapeBtn" onclick="toggleShapePicker()">✏️</button><button id="searchBtn" onclick="toggleSearch()">🔍</button></div></div>
+
+<div id="sdrPanel">
+  <h3 id="sdrPanelTitle">📡 SDR Receiver</h3>
+  <div class="sdr-row">
+    <input id="sdrUrl" type="text" placeholder="http://localhost:8090" value="http://localhost:8090">
+  </div>
+  <div class="sdr-row" style="gap:4px">
+    <button class="sdr-btn sdr-connect" id="sdrConnectBtn" onclick="toggleSdr()">Connect</button>
+    <button class="sdr-btn" id="sdrDemoBtn" style="background:rgba(255,255,255,0.05);color:var(--text2);font-size:.55rem" onclick="testSdrDemo()">Demo</button>
+  </div>
+  <div class="sdr-status" id="sdrStatus">Disconnected · Using OpenSky API</div>
+  <div class="sdr-stats" id="sdrStats" style="display:none">
+    <div class="sdr-stat"><span id="sdrLblMsg">Messages</span> <span class="sv" id="sdrMsgCount">0</span></div>
+    <div class="sdr-stat"><span id="sdrLblRate">Msg/sec</span> <span class="sv" id="sdrMsgRate">0</span></div>
+    <div class="sdr-stat"><span id="sdrLblTrack">Tracked</span> <span class="sv" id="sdrTracked">0</span></div>
+    <div class="sdr-stat"><span id="sdrLblRange">Max Range</span> <span class="sv" id="sdrRange">—</span></div>
+    <div class="sdr-stat"><span id="sdrLblUp">Uptime</span> <span class="sv" id="sdrUptime">0s</span></div>
+    <div id="sdrCountries" style="margin-top:4px;font-size:.5rem;color:var(--text3)"></div>
+  </div>
+</div>
+<div id="sdrBadge">📡 SDR LIVE<span id="sdrBadgeCount"></span></div>
+
+<div id="mbStatus"><span class="mb-dot off" id="mbDot"></span><span id="mbText">Click to pair micro:bit</span></div>
+
+<div id="shapePicker">
+  <div class="shape-opt active" data-shape="jet" onclick="setShape('jet')"><span class="so-icon">✈️</span><span class="so-name">Airliner</span></div>
+  <div class="shape-opt" data-shape="fighter" onclick="setShape('fighter')"><span class="so-icon">🛩️</span><span class="so-name">Fighter</span></div>
+  <div class="shape-opt" data-shape="prop" onclick="setShape('prop')"><span class="so-icon">🛫</span><span class="so-name">Prop</span></div>
+  <div class="shape-opt" data-shape="heli" onclick="setShape('heli')"><span class="so-icon">🚁</span><span class="so-name">Heli</span></div>
+  <div class="shape-opt" data-shape="paper" onclick="setShape('paper')"><span class="so-icon">📄</span><span class="so-name">Paper</span></div>
+  <div class="shape-opt" data-shape="rocket" onclick="setShape('rocket')"><span class="so-icon">🚀</span><span class="so-name">Rocket</span></div>
+  <div class="shape-opt" data-shape="bird" onclick="setShape('bird')"><span class="so-icon">🐦</span><span class="so-name">Bird</span></div>
+  <div class="shape-opt" data-shape="ufo" onclick="setShape('ufo')"><span class="so-icon">🛸</span><span class="so-name">UFO</span></div>
+  <div class="shape-opt" data-shape="star" onclick="setShape('star')"><span class="so-icon">⭐</span><span class="so-name">Star</span></div>
+</div>
+
+<div id="proxAlert">✈️ Plane overhead!</div>
+
+<div id="searchBar">
+  <div style="position:relative"><span class="search-icon-inner">🔍</span><input id="searchInput" type="text" placeholder="Country or airline..." autocomplete="off" oninput="onSearchInput()" onkeydown="onSearchKey(event)"></div>
+  <div id="suggestions"></div>
+</div>
+<div id="filterPill" onclick="clearFilter()"><span id="fpFlag"></span><span id="fpName"></span> · <span id="fpCount">0</span> planes<span class="fp-close">✕</span></div>
+<div id="noMatchMsg"><div class="nm-title">No planes found</div>No <span id="nmCountry">—</span> planes in your area right now.<div class="nm-btn" onclick="clearFilter()">Clear filter</div></div>
+
+<div id="modeBar">
+  <button class="mBtn active" data-mode="sky" onclick="setMode('sky')">🌤️ Sky</button>
+  <button class="mBtn" data-mode="explorer" onclick="setMode('explorer')">✈️ Explorer</button>
+  <button class="mBtn" data-mode="pro" onclick="setMode('pro')">📡 Pro</button>
+  <button class="mBtn" data-mode="expert" onclick="setMode('expert')">🔬 Expert</button>
+  <button class="mBtn" data-mode="heritage" onclick="setMode('heritage')">🕌 Heritage</button>
+</div>
+
+<button id="exportBtn" onclick="exportCSV()">📥 CSV</button>
+<button id="audioBtn" onclick="toggleAudio()" style="position:fixed;top:60px;right:10px;z-index:20;background:rgba(5,10,20,0.7);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);border-radius:50%;width:32px;height:32px;display:grid;place-items:center;cursor:pointer;font-size:.8rem;color:var(--text2);transition:all .25s">🔇</button>
+<div id="radarOverlay"><canvas id="radarCanvas" style="width:100%;height:100%"></canvas></div>
+
+<!-- Pro panels -->
+<div class="pro-panel" id="sqP"><div class="ep-title" style="color:var(--orange)">Squawk</div><div id="sqL"></div></div>
+<div class="pro-panel" id="wiP"><div class="ep-title" style="color:var(--orange)">Wind</div><div id="wiI"></div></div>
+
+<!-- Expert panels -->
+<div class="epanel" id="metarP"><div class="ep-title" style="color:var(--expert)">🌦️ METAR</div><div id="metD"></div></div>
+<div class="epanel" id="atmosP"><div class="ep-title" style="color:var(--expert)">🌡️ Atmosphere</div><div id="atmD"></div></div>
+<div class="epanel" id="airspaceP" style="bottom:75px;left:8px;width:195px;padding-bottom:8px"><div class="ep-title" style="color:var(--expert)">🗺️ Airspace</div><div id="airD"></div></div>
+<div class="epanel" id="waypointP" style="bottom:75px;right:8px;width:185px;padding-bottom:8px"><div class="ep-title" style="color:var(--expert)">📍 Waypoints</div><div id="wpD"></div></div>
+<div class="epanel" id="heatmapP" style="bottom:6px;left:8px;width:210px;height:105px;padding:8px"><div class="ep-title" style="color:var(--expert)">🔥 Heatmap</div><canvas id="heatCanvas" style="width:100%;height:62px"></canvas></div>
+
+<!-- Heritage toast -->
+<div id="heritageToast">
+  <button class="ht-close" onclick="closeToast()">✕</button>
+  <div class="ht-head">
+    <span class="ht-icon" id="htIcon">🔭</span>
+    <div>
+      <div class="ht-name" id="htName">—</div>
+      <div class="ht-arabic" id="htArabic">—</div>
+      <div class="ht-dates" id="htDates">—</div>
+    </div>
+  </div>
+  <div class="ht-body" id="htBody">—</div>
+  <div class="ht-connection" id="htConn">—</div>
+</div>
+
+<!-- Heritage full panel -->
+<div id="heritagePanel">
+  <button class="hp-close" onclick="closeHeritage()">✕</button>
+  <div class="hp-title">🕌 Islamic Aviation Heritage</div>
+  <div class="hp-subtitle">The Golden Age of Science that Made Flight Possible</div>
+
+  <!-- Timeline -->
+  <div class="hp-section">
+    <div class="hp-sec-title"><span class="icon">📜</span> Pioneers Timeline</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-year">810 — 887 CE</div>
+        <div class="tl-name">Abbas ibn Firnas</div>
+        <div class="tl-arabic">عباس بن فرناس</div>
+        <div class="tl-desc">First controlled flight attempt in Córdoba, Spain. Designed wings from silk and eagle feathers, glided from a mountain — 600 years before Leonardo da Vinci's designs.</div>
+        <div class="tl-math">✈️ Connection: Every plane you see owes a debt to his courage</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">780 — 850 CE</div>
+        <div class="tl-name">Al-Khwarizmi</div>
+        <div class="tl-arabic">الخوارزمي</div>
+        <div class="tl-desc">Father of Algebra ("al-jabr"). Invented algorithms — the word "algorithm" comes from his name. Every flight computer, GPS, and autopilot runs on his mathematics.</div>
+        <div class="tl-math" id="khwarizmiLive">🧮 Right now: calculating ETA for <span id="khwPlanes">0</span> planes overhead</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">965 — 1040 CE</div>
+        <div class="tl-name">Ibn al-Haytham</div>
+        <div class="tl-arabic">ابن الهيثم</div>
+        <div class="tl-desc">Father of Optics. His "Book of Optics" (Kitab al-Manazir) pioneered the scientific method and understanding of light. Radar, head-up displays, and navigation screens are built on his science.</div>
+        <div class="tl-math">👁️ Connection: Every radar screen and cockpit display</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">858 — 929 CE</div>
+        <div class="tl-name">Al-Battani</div>
+        <div class="tl-arabic">البتاني</div>
+        <div class="tl-desc">Master of trigonometry and spherical geometry. His precise astronomical calculations made celestial navigation possible. Great circle routes — the shortest paths planes fly — rely on his work.</div>
+        <div class="tl-math" id="battaniLive">📐 Right now: great circle routes guiding planes</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">973 — 1048 CE</div>
+        <div class="tl-name">Al-Biruni</div>
+        <div class="tl-arabic">البيروني</div>
+        <div class="tl-desc">Calculated Earth's circumference with stunning accuracy using trigonometry and a mountain. Air navigation depends on knowing Earth's exact shape and size.</div>
+        <div class="tl-math">🌍 His measurement: ~6,339km radius (actual: 6,371km — 99.5% accurate!)</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1136 — 1206 CE</div>
+        <div class="tl-name">Al-Jazari</div>
+        <div class="tl-arabic">الجزري</div>
+        <div class="tl-desc">Father of mechanical engineering. His automated machines, camshafts, crankshafts, and programmable devices laid the foundation for the engines that power every aircraft.</div>
+        <div class="tl-math">⚙️ Connection: Every jet engine traces back to his mechanisms</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">800 — 880 CE</div>
+        <div class="tl-name">Fatima al-Fihri</div>
+        <div class="tl-arabic">فاطمة الفهري</div>
+        <div class="tl-desc">Founded the University of Al-Qarawiyyin in Fez, Morocco in 859 CE — the world's oldest existing university. She created the system of higher education that trained astronomers, mathematicians, and engineers for centuries.</div>
+        <div class="tl-math">🏛️ Connection: Every pilot and engineer trained at universities she pioneered</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">936 — 1013 CE</div>
+        <div class="tl-name">Al-Zahrawi</div>
+        <div class="tl-arabic">الزهراوي</div>
+        <div class="tl-desc">Father of modern surgery. His 30-volume medical encyclopaedia described over 200 surgical instruments. Aviation medicine and every aircraft's emergency medical equipment follows his systematic approach to saving lives.</div>
+        <div class="tl-math">⚕️ Connection: In-flight medical kits carry his legacy</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1100 — 1165 CE</div>
+        <div class="tl-name">Al-Idrisi</div>
+        <div class="tl-arabic">الإدريسي</div>
+        <div class="tl-desc">Created the Tabula Rogeriana — the most accurate world map for 300 years. He mapped continents, trade routes, rivers, and mountain ranges. Every flight chart and navigation map descends from his cartographic tradition.</div>
+        <div class="tl-math">🗺️ Connection: Flight routes follow paths he first charted</div>
+      </div>
+      <div class="tl-item modern">
+        <div class="tl-year">1903 CE</div>
+        <div class="tl-name">Wright Brothers</div>
+        <div class="tl-desc">First powered flight at Kitty Hawk, built on centuries of aeronautic science — standing on the shoulders of giants.</div>
+      </div>
+      <div class="tl-item modern">
+        <div class="tl-year">Today</div>
+        <div class="tl-name">Modern Aviation</div>
+        <div class="tl-desc" id="todayDesc">Loading live data...</div>
+        <div class="live-badge">LIVE from your sky</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arabic Star Names -->
+  <div class="hp-section">
+    <div class="hp-sec-title"><span class="icon">⭐</span> Arabic Star Names in Navigation</div>
+    <div id="starsSub" style="font-size:.65rem;color:var(--text2);margin-bottom:8px">Most star names used in navigation today come from Arabic. These guided sailors and now guide pilots.</div>
+    <div class="star-grid" id="starGrid">
+      <div class="star-card"><div class="s-name">Altair</div><div class="s-arabic">الطائر</div><div class="s-meaning">"The Flying Eagle"</div><div class="s-use">Used in celestial navigation</div></div>
+      <div class="star-card"><div class="s-name">Betelgeuse</div><div class="s-arabic">يد الجوزاء</div><div class="s-meaning">"Hand of Orion"</div><div class="s-use">Winter navigation star</div></div>
+      <div class="star-card"><div class="s-name">Vega</div><div class="s-arabic">النسر الواقع</div><div class="s-meaning">"Falling Eagle"</div><div class="s-use">Summer triangle star</div></div>
+      <div class="star-card"><div class="s-name">Aldebaran</div><div class="s-arabic">الدبران</div><div class="s-meaning">"The Follower"</div><div class="s-use">Follows the Pleiades</div></div>
+      <div class="star-card"><div class="s-name">Rigel</div><div class="s-arabic">رجل</div><div class="s-meaning">"The Foot"</div><div class="s-use">Orion's brightest star</div></div>
+      <div class="star-card"><div class="s-name">Deneb</div><div class="s-arabic">ذنب</div><div class="s-meaning">"The Tail"</div><div class="s-use">Northern Cross star</div></div>
+    </div>
+  </div>
+
+  <!-- Arabic Aviation Vocabulary -->
+  <div class="hp-section">
+    <div class="hp-sec-title"><span class="icon">📖</span> Arabic-Origin Aviation Words</div>
+    <div id="vocabSub" style="font-size:.65rem;color:var(--text2);margin-bottom:8px">Words you use every day that come from Arabic</div>
+    <div class="vocab-grid">
+      <div class="vocab-chip"><div class="vw">Algorithm</div><div class="vo">الخوارزمي</div></div>
+      <div class="vocab-chip"><div class="vw">Algebra</div><div class="vo">الجبر</div></div>
+      <div class="vocab-chip"><div class="vw">Azimuth</div><div class="vo">السمت</div></div>
+      <div class="vocab-chip"><div class="vw">Nadir</div><div class="vo">نظير</div></div>
+      <div class="vocab-chip"><div class="vw">Zenith</div><div class="vo">سمت الرأس</div></div>
+      <div class="vocab-chip"><div class="vw">Admiral</div><div class="vo">أمير البحر</div></div>
+      <div class="vocab-chip"><div class="vw">Caliber</div><div class="vo">قالب</div></div>
+      <div class="vocab-chip"><div class="vw">Cipher</div><div class="vo">صفر</div></div>
+      <div class="vocab-chip"><div class="vw">Zero</div><div class="vo">صفر</div></div>
+    </div>
+  </div>
+
+  <!-- Astrolabe vs GPS -->
+  <div class="hp-section">
+    <div class="hp-sec-title"><span class="icon">🧭</span> Astrolabe → GPS: Same Science, 1000 Years Apart</div>
+    <div class="astrolabe-compare">
+      <div class="ast-side">
+        <div class="ast-icon">🌙</div>
+        <div class="ast-title">Astrolabe (800 CE)</div>
+        <div class="ast-desc">Measured star angles to find latitude & longitude. Islamic scholars perfected it for finding qibla direction and prayer times. Used star positions, horizon reference, and trigonometry.</div>
+      </div>
+      <div class="ast-side">
+        <div class="ast-icon">📡</div>
+        <div class="ast-title">GPS (2000 CE)</div>
+        <div class="ast-desc">Measures satellite signals to find position. Uses the same mathematical principles — triangulation, spherical geometry, and algorithms — all pioneered by Islamic scholars.</div>
+      </div>
+    </div>
+    <div class="physics-card">
+      <div class="pc-title">The Math Connection</div>
+      <div class="pc-eq">position = f(angles, spherical_trig, algorithms)</div>
+      <div class="pc-desc">Both astrolabe and GPS solve the same problem: "Where am I on a sphere?" The mathematics of Al-Battani (trigonometry), Al-Khwarizmi (algorithms), and Al-Biruni (Earth measurements) bridge both technologies.</div>
+    </div>
+  </div>
+
+  <!-- Islamic Aviation Hubs -->
+  <div class="hp-section">
+    <div class="hp-sec-title"><span class="icon">🏗️</span> Modern Islamic Aviation Hubs</div>
+    <div class="hub-grid" id="hubGrid">
+      <div class="hub-card"><div class="hf">🇦🇪</div><div class="hn">Dubai DXB</div><div class="hc">#1 international</div></div>
+      <div class="hub-card"><div class="hf">🇶🇦</div><div class="hn">Doha DOH</div><div class="hc">Qatar Airways hub</div></div>
+      <div class="hub-card"><div class="hf">🇹🇷</div><div class="hn">Istanbul IST</div><div class="hc">Europe-Asia bridge</div></div>
+      <div class="hub-card"><div class="hf">🇸🇦</div><div class="hn">Jeddah JED</div><div class="hc">Hajj gateway</div></div>
+      <div class="hub-card"><div class="hf">🇲🇾</div><div class="hn">KL KUL</div><div class="hc">SE Asia hub</div></div>
+      <div class="hub-card"><div class="hf">🇮🇩</div><div class="hn">Jakarta CGK</div><div class="hc">Largest Muslim nation</div></div>
+    </div>
+  </div>
+
+  <!-- Physics Deep Dive -->
+  <div class="hp-section">
+    <div class="hp-sec-title"><span class="icon">🔬</span> Physics of Flight — Islamic Foundations</div>
+    <div class="physics-card">
+      <div class="pc-title">Bernoulli's Principle (roots in Ibn al-Haytham's fluid dynamics)</div>
+      <div class="pc-eq">P + ½ρv² + ρgh = constant</div>
+      <div class="pc-desc">Air moves faster over the curved top of a wing, creating lower pressure above. This pressure difference is lift — the force that holds every plane up. Ibn al-Haytham's studies of how light and fluids behave through different media helped lay the groundwork.</div>
+    </div>
+    <div class="physics-card" style="margin-top:6px">
+      <div class="pc-title">Great Circle Distance (Al-Battani's Spherical Trigonometry)</div>
+      <div class="pc-eq">d = R × arccos(sin φ₁ sin φ₂ + cos φ₁ cos φ₂ cos Δλ)</div>
+      <div class="pc-desc">The shortest path between two points on Earth is a curve, not a straight line. Al-Battani's spherical trigonometry made calculating these routes possible — every flight plan uses this formula.</div>
+    </div>
+  </div>
+</div>
+
+<div id="zoomInd">1.0×</div>
+<div id="loadingOverlay" class="hidden"><div class="ld-plane">✈️</div><div class="ld-text">Scanning the skies<span class="ld-dots"></span></div></div>
+
+<div id="statsBar">
+  <div class="sp">✈️ <span class="sv" id="sT">0</span></div>
+  <div class="sp">⬆️ <span class="sv" id="sH">—</span></div>
+  <div class="sp">💨 <span class="sv" id="sF">—</span></div>
+  <canvas id="sparkline" width="60" height="20" style="opacity:0.6"></canvas>
+</div>
+
+<div id="infoPanel">
+  <div class="ih">
+    <span style="font-size:1.1rem">✈️</span>
+    <div><div class="cs" id="iCS">—</div><div class="al" id="iAL">—</div></div>
+    <button class="ic" onclick="closeInfo()">✕</button>
+  </div>
+  <div class="ig">
+    <div class="ii"><div class="lb" id="iAltL">Altitude</div><div class="vl" id="iAlt">—</div><div class="sb" id="iAltF">—</div></div>
+    <div class="ii"><div class="lb" id="iSpdL">Speed</div><div class="vl" id="iSpd">—</div><div class="sb" id="iSpdF">—</div></div>
+    <div class="ii"><div class="lb" id="iMachL">Mach</div><div class="vl" id="iMach">—</div><div class="sb" id="iMachF">—</div></div>
+    <div class="ii"><div class="lb" id="iHdgL">Heading</div><div class="vl" id="iHdg">—</div><div class="sb" id="iHdgD">—</div></div>
+    <div class="ii"><div class="lb" id="iVsiL">Vertical</div><div class="vl" id="iVsi">—</div><div class="sb" id="iPh">—</div></div>
+    <div class="ii"><div class="lb">Temp</div><div class="vl" id="iTemp">—</div><div class="sb">at altitude</div></div>
+  </div>
+  <!-- Heritage insights in info panel -->
+  <div class="heritage-info" id="heritageInfo">
+    <div class="hi-card" id="hiAlgebra">
+      <div class="hi-title">🧮 Al-Khwarizmi's Math at Work</div>
+      <div class="hi-body" id="hiAlgBody">Algebra is calculating this plane's ETA right now</div>
+    </div>
+    <div class="hi-card" id="hiTrig">
+      <div class="hi-title">📐 Al-Battani's Trigonometry</div>
+      <div class="hi-body" id="hiTrigBody">Great circle route computed using spherical trig</div>
+    </div>
+    <div class="hi-card" id="hiOptics">
+      <div class="hi-title">👁️ Ibn al-Haytham's Optics</div>
+      <div class="hi-body">The radar tracking this plane uses principles from his Book of Optics</div>
+    </div>
+  </div>
+  <!-- Expert data rows -->
+  <div class="ex-grid hidden" id="expertInfo">
+    <div class="ei"><div class="lb" id="iFuelL">Fuel Burn</div><div class="vl" id="iFuel">—</div><div class="sb" id="iFuelSub">kg/hr estimate</div></div>
+    <div class="ei"><div class="lb" id="iContrailL">Contrails</div><div class="vl" id="iContrail">—</div><div class="sb" id="iContrailS">—</div></div>
+    <div class="ei"><div class="lb" id="iLayerL">Layer</div><div class="vl" id="iLayer">—</div><div class="sb" id="iLayerS">—</div></div>
+    <div class="ei"><div class="lb" id="iDistL">Distance</div><div class="vl" id="iDist">—</div><div class="sb" id="iDistSub">from you</div></div>
+    <div class="ei"><div class="lb" id="iISSL">ISS Compare</div><div class="vl" id="iISS">—</div><div class="sb">408km orbit</div></div>
+    <div class="ei"><div class="lb" id="iBearL">Bearing</div><div class="vl" id="iBear">—</div><div class="sb">from you</div></div>
+  </div>
+  <div class="cc" id="cultureCard">
+    <div class="ch"><span class="cf" id="ccF">🌍</span><div><div class="cd" id="ccD">—</div><div class="cs2" id="ccS">—</div></div></div>
+    <div class="cfs" id="ccFs"></div>
+  </div>
+</div>
+
+<canvas id="skyCanvas"></canvas>
+
+<script>
+// ========== INTERNATIONALIZATION ==========
+let curLang='en';
+const LANG={
+en:{
+  title:'✈️ Planes in the Sky',
+  locTitle:'✈️ Planes in the Sky',
+  locSub:'Five modes including Islamic Aviation Heritage 🕌',
+  locGPS:'📍 Use My Location',
+  locSearch:'Type a city...',
+  locFinding:'Finding...',locDenied:'Denied.',locNoGPS:'No GPS.',
+  modeSky:'🌤️ Sky',modeLearn:'📚 Learn',modePro:'📡 Pro',modeExpert:'🔬 Expert',modeHeritage:'🕌 Heritage',
+  shapes:{jet:'Airliner',fighter:'Fighter',prop:'Prop',heli:'Heli',paper:'Paper',rocket:'Rocket',bird:'Bird',ufo:'UFO',star:'Star'},
+  searchPh:'Country or airline...',noPlanes:'No planes found',noMatch:'No <FLAG> planes in your area right now.',clearFilter:'Clear filter',noPlanesYet:'No planes detected yet',
+  lblAlt:'Altitude',lblSpd:'Speed',lblMach:'Mach',lblHdg:'Heading',lblVsi:'Vertical',
+  lblFuel:'Fuel Burn',lblContrail:'Contrail',lblLayer:'Layer',lblDist:'Distance',lblISS:'ISS %',lblBearing:'Bearing',
+  fromYou:'from you',kghr:'kg/hr estimate',
+  climbing:'🔺 Climbing',descending:'🔻 Descending',cruise:'➡️ Cruise',
+  transonic:'Transonic',subsonic:'Subsonic',
+  altFun:m=>m>8849?'Above Everest! 🏔️':m>5000?`${Math.round(m/5.5)} giraffes! 🦒`:`${Math.round(m/324)} Eiffel Towers! 🗼`,
+  spdFun:k=>k>900?'Near Mach 1!':k>700?`${Math.round(k/120)}× cheetah! 🐆`:`${Math.round(k/320)}× race car! 🏎️`,
+  atmos:{tropo:'Troposphere',tropoD:'Weather layer',pause:'Tropopause',pauseD:'Stable zone ~-56°C',strato:'Stratosphere',stratoD:'Ozone layer',meso:'Mesosphere',mesoD:'Meteors burn here'},
+  loading:'Scanning the skies',
+  demoBadge:'✈️ DEMO MODE — simulated flights',
+  proxOverhead:'✈️ Plane overhead!',
+  proxMsg:(al,alt,d)=>`✈️ ${al} · ${Math.round(alt).toLocaleString()}m · ${d.toFixed(1)}km away`,
+  kmAway:'km away',
+  sdrTitle:'📡 SDR Receiver',sdrConnect:'Connect',sdrDisconnect:'Disconnect',sdrDemo:'Demo',sdrDisconnected:'Disconnected · Using OpenSky API',sdrConnected:'✅ Connected to SDR receiver',sdrDemoMode:'✅ SDR Demo Mode — simulated raw ADS-B',sdrCantReach:'❌ Cannot reach',sdrMessages:'Messages',sdrMsgSec:'Msg/sec',sdrTracked:'Tracked',sdrMaxRange:'Max Range',sdrUptime:'Uptime',
+  mbPair:'Click to pair micro:bit',
+  onboard:[
+    {emoji:'✈️',title:'Welcome, Sky Watcher!',text:'Watch real planes fly over your head in real time. Tap any plane to discover where it\'s from!'},
+    {emoji:'👆',title:'Tap a Plane',text:'Tap any plane to see its airline, country, altitude, speed, and fun facts. Swipe or tilt your phone to look around the sky.'},
+    {emoji:'🔍',title:'Search Countries',text:'Tap the 🔍 icon to filter planes by country. Type "France" to highlight only French planes!'},
+    {emoji:'🌤️📡🔬🕌',title:'Five Modes',text:'Switch modes at the top: Sky for beauty, Learn for facts, Pro for radar, Expert for avionics, and Heritage for Islamic Golden Age connections.'},
+    {emoji:'🎉',title:'Ready for Takeoff!',text:'Your sky is loading now. Look up and explore!'}
+  ],
+  hTitle:'Islamic Aviation Heritage',
+  hTimeline:'📜 Pioneers Timeline',
+  hStars:'⭐ Arabic Star Names in Navigation',
+  hStarsSub:'Most star names used in navigation today come from Arabic. These guided sailors and now guide pilots.',
+  hVocab:'📖 Arabic-Origin Aviation Words',
+  hVocabSub:'Words you use every day that come from Arabic',
+  hAstrolabe:'🧭 Astrolabe → GPS: Same Science, 1000 Years Apart',
+  hAstroOld:'Astrolabe (800 CE)',hAstroOldD:'Measured star angles to find latitude & longitude. Islamic scholars perfected it for finding qibla direction and prayer times.',
+  hAstroNew:'GPS (2000 CE)',hAstroNewD:'Measures satellite signals to find position. Uses the same mathematical principles — triangulation, spherical geometry, and algorithms.',
+  hMathConn:'The Math Connection',hMathConnD:'Both astrolabe and GPS solve the same problem: "Where am I on a sphere?" The mathematics of Al-Battani, Al-Khwarizmi, and Al-Biruni bridge both technologies.',
+  hHubs:'🏗️ Modern Islamic Aviation Hubs',
+  hPhysics:'🔬 Physics of Flight — Islamic Foundations',
+  hBernoulli:'Bernoulli\'s Principle (roots in Ibn al-Haytham\'s fluid dynamics)',hBernoulliD:'Air moves faster over the curved top of a wing, creating lower pressure above. This pressure difference is lift.',
+  hGreatCircle:'Great Circle Distance (Al-Battani\'s Spherical Trigonometry)',hGreatCircleD:'The shortest path between two points on Earth is a curve. Al-Battani\'s spherical trigonometry made calculating these routes possible.',
+  hLive:'LIVE from your sky',
+  hTodayName:'Modern Aviation',
+  hWrightName:'Wright Brothers',hWrightDesc:'First powered flight at Kitty Hawk, built on centuries of aeronautic science — standing on the shoulders of giants.',
+  hubData:[{f:'🇦🇪',n:'Dubai DXB',c:'#1 international'},{f:'🇶🇦',n:'Doha DOH',c:'Qatar Airways hub'},{f:'🇹🇷',n:'Istanbul IST',c:'Europe-Asia bridge'},{f:'🇸🇦',n:'Jeddah JED',c:'Hajj gateway'},{f:'🇲🇾',n:'KL KUL',c:'SE Asia hub'},{f:'🇮🇩',n:'Jakarta CGK',c:'Largest Muslim nation'}],
+  starData:[{n:'Altair',a:'الطائر',m:'"The Flying Eagle"',u:'Used in celestial navigation'},{n:'Betelgeuse',a:'يد الجوزاء',m:'"Hand of Orion"',u:'Winter navigation star'},{n:'Vega',a:'النسر الواقع',m:'"Falling Eagle"',u:'Summer triangle star'},{n:'Aldebaran',a:'الدبران',m:'"The Follower"',u:'Follows the Pleiades'},{n:'Rigel',a:'رجل',m:'"The Foot"',u:'Orion\'s brightest star'},{n:'Deneb',a:'ذنب',m:'"The Tail"',u:'Northern Cross star'}],
+  // Heritage scholar descriptions
+  scholarDesc:[
+    'First controlled flight attempt in Córdoba, Spain. Designed wings from silk and eagle feathers, glided from a mountain — 600 years before Leonardo da Vinci\'s designs.',
+    'Father of Algebra ("al-jabr"). Invented algorithms — the word "algorithm" comes from his name. Every flight computer, GPS, and autopilot runs on his mathematics.',
+    'Father of Optics. His "Book of Optics" (Kitab al-Manazir) pioneered the scientific method and understanding of light. Radar, head-up displays, and navigation screens are built on his science.',
+    'Master of trigonometry and spherical geometry. His precise astronomical calculations made celestial navigation possible. Great circle routes — the shortest paths planes fly — rely on his work.',
+    'Calculated Earth\'s circumference with stunning accuracy using trigonometry and a mountain. Air navigation depends on knowing Earth\'s exact shape and size.',
+    'Father of mechanical engineering. His automated machines, camshafts, crankshafts, and programmable devices laid the foundation for the engines that power every aircraft.',
+    'Founded the University of Al-Qarawiyyin in Fez, Morocco in 859 CE — the world\'s oldest existing university. She created the system of higher education that trained astronomers, mathematicians, and engineers for centuries.',
+    'Father of modern surgery. His 30-volume medical encyclopaedia described over 200 surgical instruments. Aviation medicine and every aircraft\'s emergency medical equipment follows his systematic approach.',
+    'Created the Tabula Rogeriana — the most accurate world map for 300 years. He mapped continents, trade routes, rivers, and mountain ranges. Every flight chart and navigation map descends from his cartographic tradition.'
+  ],
+  scholarConn:['✈️ Connection: Every plane you see owes a debt to his courage','🧮 Right now: calculating ETA for','👁️ Connection: Every radar screen and cockpit display','📐 Right now: great circle routes guiding planes','🌍 His measurement: ~6,339km radius (actual: 6,371km — 99.5% accurate!)','⚙️ Connection: Every jet engine traces back to his mechanisms','🏛️ Connection: Every pilot and engineer trained at universities she pioneered','⚕️ Connection: In-flight medical kits carry his legacy','🗺️ Connection: Flight routes follow paths he first charted'],
+  squawk:'Squawk',wind:'Wind',
+  proSquawks:{'7500':'HIJACK','7600':'RADIO FAIL','7700':'EMERGENCY'},
+  expertMetar:'🌦️ METAR',expertAtmos:'🌡️ Atmosphere',expertAirspace:'🗺️ Airspace',expertWaypoints:'📍 Waypoints',
+},
+fr:{
+  title:'✈️ Avions dans le Ciel',
+  locTitle:'✈️ Avions dans le Ciel',
+  locSub:'Cinq modes dont le Patrimoine Aéronautique Islamique 🕌',
+  locGPS:'📍 Ma Position',
+  locSearch:'Chercher une ville...',
+  locFinding:'Recherche...',locDenied:'Refusé.',locNoGPS:'Pas de GPS.',
+  modeSky:'🌤️ Ciel',modeLearn:'📚 Découvrir',modePro:'📡 Pro',modeExpert:'🔬 Expert',modeHeritage:'🕌 Héritage',
+  shapes:{jet:'Avion',fighter:'Chasseur',prop:'Hélice',heli:'Héli',paper:'Papier',rocket:'Fusée',bird:'Oiseau',ufo:'OVNI',star:'Étoile'},
+  searchPh:'Pays ou compagnie...',noPlanes:'Aucun avion trouvé',noMatch:'Pas d\'avions <FLAG> dans votre zone actuellement.',clearFilter:'Effacer le filtre',noPlanesYet:'Aucun avion détecté',
+  lblAlt:'Altitude',lblSpd:'Vitesse',lblMach:'Mach',lblHdg:'Cap',lblVsi:'Verticale',
+  lblFuel:'Consommation',lblContrail:'Traînée',lblLayer:'Couche',lblDist:'Distance',lblISS:'ISS %',lblBearing:'Azimut',
+  fromYou:'de vous',kghr:'kg/h estimé',
+  climbing:'🔺 Montée',descending:'🔻 Descente',cruise:'➡️ Croisière',
+  transonic:'Transsonique',subsonic:'Subsonique',
+  altFun:m=>m>8849?'Au-dessus de l\'Everest ! 🏔️':m>5000?`${Math.round(m/5.5)} girafes ! 🦒`:`${Math.round(m/324)} Tours Eiffel ! 🗼`,
+  spdFun:k=>k>900?'Presque Mach 1 !':k>700?`${Math.round(k/120)}× guépard ! 🐆`:`${Math.round(k/320)}× voiture de course ! 🏎️`,
+  atmos:{tropo:'Troposphère',tropoD:'Couche météo',pause:'Tropopause',pauseD:'Zone stable ~-56°C',strato:'Stratosphère',stratoD:'Couche d\'ozone',meso:'Mésosphère',mesoD:'Les météores brûlent ici'},
+  loading:'Exploration du ciel',
+  demoBadge:'✈️ MODE DÉMO — vols simulés',
+  proxOverhead:'✈️ Avion au-dessus !',
+  proxMsg:(al,alt,d)=>`✈️ ${al} · ${Math.round(alt).toLocaleString()}m · à ${d.toFixed(1)}km`,
+  kmAway:'km de vous',
+  sdrTitle:'📡 Récepteur SDR',sdrConnect:'Connecter',sdrDisconnect:'Déconnecter',sdrDemo:'Démo',sdrDisconnected:'Déconnecté · Utilise l\'API OpenSky',sdrConnected:'✅ Connecté au récepteur SDR',sdrDemoMode:'✅ Mode Démo SDR — ADS-B simulé',sdrCantReach:'❌ Impossible d\'atteindre',sdrMessages:'Messages',sdrMsgSec:'Msg/sec',sdrTracked:'Suivis',sdrMaxRange:'Portée max',sdrUptime:'Durée',
+  mbPair:'Cliquez pour appairer micro:bit',
+  onboard:[
+    {emoji:'✈️',title:'Bienvenue, Observateur du Ciel !',text:'Regardez de vrais avions voler au-dessus de votre tête en temps réel. Touchez un avion pour découvrir d\'où il vient !'},
+    {emoji:'👆',title:'Touchez un Avion',text:'Touchez un avion pour voir sa compagnie, son pays, son altitude, sa vitesse et des infos amusantes. Glissez ou inclinez votre téléphone pour regarder autour.'},
+    {emoji:'🔍',title:'Cherchez par Pays',text:'Touchez l\'icône 🔍 pour filtrer les avions par pays. Tapez « France » pour ne voir que les avions français !'},
+    {emoji:'🌤️📡🔬🕌',title:'Cinq Modes',text:'Changez de mode en haut : Ciel pour la beauté, Découvrir pour les faits, Pro pour le radar, Expert pour l\'avionique, et Héritage pour l\'Âge d\'Or islamique.'},
+    {emoji:'🎉',title:'Prêt au Décollage !',text:'Votre ciel se charge. Regardez en haut et explorez !'}
+  ],
+  hTitle:'Patrimoine Aéronautique Islamique',
+  hTimeline:'📜 Chronologie des Pionniers',
+  hStars:'⭐ Noms d\'Étoiles Arabes en Navigation',
+  hStarsSub:'La plupart des noms d\'étoiles utilisés en navigation viennent de l\'arabe.',
+  hVocab:'📖 Mots Aéronautiques d\'Origine Arabe',
+  hVocabSub:'Des mots que vous utilisez chaque jour et qui viennent de l\'arabe',
+  hAstrolabe:'🧭 Astrolabe → GPS : Même Science, 1000 Ans d\'Écart',
+  hAstroOld:'Astrolabe (800)',hAstroOldD:'Mesurait les angles des étoiles pour trouver la latitude et la longitude. Les savants musulmans l\'ont perfectionné pour trouver la qibla et les heures de prière.',
+  hAstroNew:'GPS (2000)',hAstroNewD:'Mesure les signaux satellites pour déterminer la position. Utilise les mêmes principes mathématiques — triangulation, géométrie sphérique et algorithmes.',
+  hMathConn:'Le Lien Mathématique',hMathConnD:'L\'astrolabe et le GPS résolvent le même problème : « Où suis-je sur une sphère ? » Les mathématiques d\'Al-Battani, d\'Al-Khwarizmi et d\'Al-Biruni relient les deux technologies.',
+  hHubs:'🏗️ Hubs Aéronautiques Islamiques Modernes',
+  hPhysics:'🔬 Physique du Vol — Fondements Islamiques',
+  hBernoulli:'Principe de Bernoulli (racines dans la dynamique des fluides d\'Ibn al-Haytham)',hBernoulliD:'L\'air se déplace plus vite au-dessus de l\'aile courbe, créant une pression plus basse. Cette différence de pression est la portance.',
+  hGreatCircle:'Distance Orthodromique (Trigonométrie Sphérique d\'Al-Battani)',hGreatCircleD:'Le plus court chemin entre deux points sur Terre est une courbe. La trigonométrie sphérique d\'Al-Battani permet de calculer ces routes.',
+  hLive:'EN DIRECT de votre ciel',
+  hTodayName:'Aviation Moderne',
+  hWrightName:'Frères Wright',hWrightDesc:'Premier vol motorisé à Kitty Hawk, bâti sur des siècles de science aéronautique — sur les épaules des géants.',
+  hubData:[{f:'🇦🇪',n:'Dubai DXB',c:'N°1 international'},{f:'🇶🇦',n:'Doha DOH',c:'Hub Qatar Airways'},{f:'🇹🇷',n:'Istanbul IST',c:'Pont Europe-Asie'},{f:'🇸🇦',n:'Djeddah JED',c:'Porte du Hajj'},{f:'🇲🇾',n:'KL KUL',c:'Hub Asie du Sud-Est'},{f:'🇮🇩',n:'Jakarta CGK',c:'Plus grande nation musulmane'}],
+  starData:[{n:'Altaïr',a:'الطائر',m:'« L\'Aigle Volant »',u:'Navigation céleste'},{n:'Bételgeuse',a:'يد الجوزاء',m:'« La Main d\'Orion »',u:'Étoile de navigation hivernale'},{n:'Véga',a:'النسر الواقع',m:'« L\'Aigle Tombant »',u:'Triangle d\'été'},{n:'Aldébaran',a:'الدبران',m:'« Le Suiveur »',u:'Suit les Pléiades'},{n:'Rigel',a:'رجل',m:'« Le Pied »',u:'Étoile la plus brillante d\'Orion'},{n:'Déneb',a:'ذنب',m:'« La Queue »',u:'Étoile de la Croix du Nord'}],
+  scholarDesc:[
+    'Première tentative de vol contrôlé à Cordoue, Espagne. Il conçut des ailes en soie et plumes d\'aigle et plana depuis une montagne — 600 ans avant Léonard de Vinci.',
+    'Père de l\'Algèbre (« al-jabr »). Inventeur des algorithmes — le mot « algorithme » vient de son nom. Chaque ordinateur de vol, GPS et pilote automatique fonctionne grâce à ses mathématiques.',
+    'Père de l\'Optique. Son « Livre de l\'Optique » (Kitab al-Manazir) a inauguré la méthode scientifique. Radar, affichages tête haute et écrans de navigation reposent sur sa science.',
+    'Maître de la trigonométrie et de la géométrie sphérique. Ses calculs astronomiques précis ont rendu la navigation céleste possible. Les routes orthodromiques que suivent les avions reposent sur son travail.',
+    'A calculé la circonférence de la Terre avec une précision remarquable en utilisant la trigonométrie et une montagne. La navigation aérienne dépend de la connaissance exacte de la taille de la Terre.',
+    'Père de l\'ingénierie mécanique. Ses machines automatisées, arbres à cames et vilebrequins ont posé les bases des moteurs qui propulsent chaque avion.',
+    'A fondé l\'Université Al-Qarawiyyin à Fès, Maroc en 859 — la plus ancienne université existante au monde. Elle a créé le système d\'enseignement supérieur qui a formé astronomes, mathématiciens et ingénieurs.',
+    'Père de la chirurgie moderne. Son encyclopédie médicale de 30 volumes décrivait plus de 200 instruments chirurgicaux. La médecine aéronautique suit son approche systématique.',
+    'A créé la Tabula Rogeriana — la carte du monde la plus précise pendant 300 ans. Chaque carte de navigation aérienne descend de sa tradition cartographique.'
+  ],
+  scholarConn:['✈️ Connexion : Chaque avion visible lui doit sa bravoure','🧮 En ce moment : calcul de l\'ETA pour','👁️ Connexion : Chaque écran radar et affichage de cockpit','📐 En ce moment : routes orthodromiques guidant les avions','🌍 Sa mesure : ~6 339 km de rayon (réel : 6 371 km — précis à 99,5% !)','⚙️ Connexion : Chaque réacteur remonte à ses mécanismes','🏛️ Connexion : Chaque pilote formé dans les universités qu\'elle a inventées','⚕️ Connexion : Les kits médicaux de bord perpétuent son héritage','🗺️ Connexion : Les routes aériennes suivent les chemins qu\'il a d\'abord cartographiés'],
+  squawk:'Squawk',wind:'Vent',
+  proSquawks:{'7500':'DÉTOURNEMENT','7600':'PANNE RADIO','7700':'URGENCE'},
+  expertMetar:'🌦️ METAR',expertAtmos:'🌡️ Atmosphère',expertAirspace:'🗺️ Espace Aérien',expertWaypoints:'📍 Points de Route',
+},
+ar:{
+  title:'✈️ طائرات في السماء',
+  locTitle:'✈️ طائرات في السماء',
+  locSub:'خمسة أنماط تشمل تراث الطيران الإسلامي 🕌',
+  locGPS:'📍 موقعي الحالي',
+  locSearch:'ابحث عن مدينة...',
+  locFinding:'جارٍ البحث...',locDenied:'مرفوض.',locNoGPS:'لا يوجد GPS.',
+  modeSky:'🌤️ سماء',modeLearn:'📚 تعلّم',modePro:'📡 محترف',modeExpert:'🔬 خبير',modeHeritage:'🕌 تراث',
+  shapes:{jet:'طائرة ركاب',fighter:'مقاتلة',prop:'مروحية',heli:'هليكوبتر',paper:'ورقية',rocket:'صاروخ',bird:'طائر',ufo:'طبق طائر',star:'نجمة'},
+  searchPh:'بلد أو شركة طيران...',noPlanes:'لم يُعثر على طائرات',noMatch:'لا توجد طائرات <FLAG> في منطقتك حالياً.',clearFilter:'مسح الفلتر',noPlanesYet:'لم تُكتشف طائرات بعد',
+  lblAlt:'الارتفاع',lblSpd:'السرعة',lblMach:'ماخ',lblHdg:'الاتجاه',lblVsi:'العمودي',
+  lblFuel:'استهلاك الوقود',lblContrail:'أثر التكاثف',lblLayer:'الطبقة',lblDist:'المسافة',lblISS:'% محطة الفضاء',lblBearing:'السمت',
+  fromYou:'منك',kghr:'كغ/ساعة تقريباً',
+  climbing:'🔺 صعود',descending:'🔻 هبوط',cruise:'➡️ مستوى الرحلة',
+  transonic:'عبر صوتي',subsonic:'دون صوتي',
+  altFun:m=>m>8849?'فوق قمة إيفرست! 🏔️':m>5000?`${Math.round(m/5.5)} زرافة! 🦒`:`${Math.round(m/324)} برج إيفل! 🗼`,
+  spdFun:k=>k>900?'قريب من سرعة الصوت!':k>700?`${Math.round(k/120)}× أسرع من الفهد! 🐆`:`${Math.round(k/320)}× سيارة سباق! 🏎️`,
+  atmos:{tropo:'طبقة التروبوسفير',tropoD:'طبقة الطقس',pause:'التروبوبوز',pauseD:'منطقة مستقرة ~-٥٦°م',strato:'الستراتوسفير',stratoD:'طبقة الأوزون',meso:'الميزوسفير',mesoD:'النيازك تحترق هنا'},
+  loading:'مسح السماء',
+  demoBadge:'✈️ وضع تجريبي — رحلات محاكاة',
+  proxOverhead:'✈️ طائرة فوقك!',
+  proxMsg:(al,alt,d)=>`✈️ ${al} · ${Math.round(alt).toLocaleString()}م · على بُعد ${d.toFixed(1)}كم`,
+  kmAway:'كم منك',
+  sdrTitle:'📡 مستقبل SDR',sdrConnect:'اتصال',sdrDisconnect:'قطع الاتصال',sdrDemo:'تجريبي',sdrDisconnected:'غير متصل · يستخدم واجهة OpenSky',sdrConnected:'✅ متصل بمستقبل SDR',sdrDemoMode:'✅ وضع تجريبي SDR — بيانات ADS-B محاكاة',sdrCantReach:'❌ تعذّر الوصول إلى',sdrMessages:'الرسائل',sdrMsgSec:'رسالة/ث',sdrTracked:'المتتبَّعة',sdrMaxRange:'أقصى مدى',sdrUptime:'وقت التشغيل',
+  mbPair:'انقر لإقران micro:bit',
+  onboard:[
+    {emoji:'✈️',title:'!مرحباً يا راصد السماء',text:'شاهد طائرات حقيقية تحلّق فوق رأسك مباشرة. اضغط على أي طائرة لتكتشف من أين أتت!'},
+    {emoji:'👆',title:'اضغط على طائرة',text:'اضغط على أي طائرة لمعرفة شركة الطيران والبلد والارتفاع والسرعة ومعلومات ممتعة. حرّك أو أمِل هاتفك للنظر حولك.'},
+    {emoji:'🔍',title:'ابحث بالدول',text:'اضغط على أيقونة 🔍 لتصفية الطائرات حسب البلد. اكتب « فرنسا » لإظهار الطائرات الفرنسية فقط!'},
+    {emoji:'🌤️📡🔬🕌',title:'خمسة أنماط',text:'غيّر النمط من الأعلى: سماء للجمال، تعلّم للمعلومات، محترف للرادار، خبير للملاحة، وتراث للعصر الذهبي الإسلامي.'},
+    {emoji:'🎉',title:'!جاهز للإقلاع',text:'سماؤك تتحمّل الآن. انظر للأعلى واستكشف!'}
+  ],
+  hTitle:'تراث الطيران الإسلامي',
+  hTimeline:'📜 الجدول الزمني للرواد',
+  hStars:'⭐ أسماء النجوم العربية في الملاحة',
+  hStarsSub:'معظم أسماء النجوم المستخدمة في الملاحة اليوم أصلها عربي.',
+  hVocab:'📖 كلمات طيران من أصل عربي',
+  hVocabSub:'كلمات تستخدمها يومياً وأصلها عربي',
+  hAstrolabe:'🧭 الأسطرلاب ← GPS : نفس العلم، بفارق 1000 سنة',
+  hAstroOld:'الأسطرلاب (800م)',hAstroOldD:'قاس زوايا النجوم لتحديد خطوط الطول والعرض. أتقنه العلماء المسلمون لتحديد اتجاه القبلة ومواقيت الصلاة.',
+  hAstroNew:'GPS (2000م)',hAstroNewD:'يقيس إشارات الأقمار الصناعية لتحديد الموقع. يستخدم نفس المبادئ الرياضية — التثليث والهندسة الكروية والخوارزميات.',
+  hMathConn:'الرابط الرياضي',hMathConnD:'كلاهما يحل نفس المسألة: « أين أنا على كرة؟ » رياضيات البتاني والخوارزمي والبيروني تربط التقنيتين.',
+  hHubs:'🏗️ مراكز الطيران الإسلامية الحديثة',
+  hPhysics:'🔬 فيزياء الطيران — الأسس الإسلامية',
+  hBernoulli:'مبدأ برنولي (جذوره في ديناميكيات الموائع لابن الهيثم)',hBernoulliD:'يتحرك الهواء أسرع فوق الجناح المنحني، مما يخلق ضغطاً أقل في الأعلى. فرق الضغط هذا هو قوة الرفع.',
+  hGreatCircle:'مسافة الدائرة العظمى (حساب المثلثات الكروية للبتاني)',hGreatCircleD:'أقصر مسار بين نقطتين على الأرض هو منحنى. حساب المثلثات الكروية للبتاني جعل حساب هذه المسارات ممكناً.',
+  hLive:'مباشر من سمائك',
+  hTodayName:'الطيران الحديث',
+  hWrightName:'الأخوان رايت',hWrightDesc:'أول رحلة بمحرك في كيتي هوك، بُنيت على قرون من علوم الطيران — على أكتاف العمالقة.',
+  hubData:[{f:'🇦🇪',n:'دبي DXB',c:'رقم ١ دولياً'},{f:'🇶🇦',n:'الدوحة DOH',c:'مركز الخطوط القطرية'},{f:'🇹🇷',n:'إسطنبول IST',c:'جسر أوروبا-آسيا'},{f:'🇸🇦',n:'جدة JED',c:'بوابة الحج'},{f:'🇲🇾',n:'كوالالمبور KUL',c:'مركز جنوب شرق آسيا'},{f:'🇮🇩',n:'جاكرتا CGK',c:'أكبر دولة إسلامية'}],
+  starData:[{n:'الطائر',a:'الطائر',m:'« النسر الطائر »',u:'الملاحة السماوية'},{n:'يد الجوزاء',a:'يد الجوزاء',m:'« يد الجبار »',u:'نجم الملاحة الشتوية'},{n:'النسر الواقع',a:'النسر الواقع',m:'« النسر الهابط »',u:'مثلث الصيف'},{n:'الدبران',a:'الدبران',m:'« التابع »',u:'يتبع الثريا'},{n:'رجل',a:'رجل',m:'« القدم »',u:'ألمع نجوم الجبار'},{n:'ذنب',a:'ذنب',m:'« الذيل »',u:'نجم الصليب الشمالي'}],
+  scholarDesc:[
+    'أول محاولة طيران مُتحكَّم فيها في قرطبة، إسبانيا. صمّم أجنحة من الحرير وريش النسر وحلّق من جبل — قبل 600 سنة من ليوناردو دافنشي.',
+    'أبو الجبر. اخترع الخوارزميات — كلمة « algorithm » مشتقة من اسمه. كل حاسوب طيران ونظام GPS وطيار آلي يعمل بفضل رياضياته.',
+    'أبو البصريات. كتابه « المناظر » أسس المنهج العلمي وفهم الضوء. شاشات الرادار وعروض قمرة القيادة مبنية على علمه.',
+    'عالم حساب المثلثات والهندسة الكروية. حساباته الفلكية الدقيقة جعلت الملاحة السماوية ممكنة. مسارات الدائرة العظمى التي تسلكها الطائرات تعتمد على عمله.',
+    'حسب محيط الأرض بدقة مذهلة باستخدام حساب المثلثات وجبل. الملاحة الجوية تعتمد على معرفة حجم وشكل الأرض بدقة.',
+    'أبو الهندسة الميكانيكية. آلاته الأوتوماتيكية وأعمدة الكامات والمرفقات أسّست لمحركات كل طائرة.',
+    'أسّست جامعة القرويين في فاس بالمغرب عام 859م — أقدم جامعة قائمة في العالم. أنشأت نظام التعليم العالي الذي درّب الفلكيين والرياضيين والمهندسين لقرون.',
+    'أبو الجراحة الحديثة. موسوعته الطبية ذات الثلاثين مجلداً وصفت أكثر من 200 أداة جراحية. طب الطيران يتبع نهجه المنظم.',
+    'أنشأ « نزهة المشتاق » — أدق خريطة عالمية لمدة 300 سنة. كل خريطة ملاحة جوية تنحدر من تقليده الخرائطي.'
+  ],
+  scholarConn:['✈️ كل طائرة تراها مدينة لشجاعته','🧮 الآن: حساب وقت الوصول لـ','👁️ كل شاشة رادار وعرض قمرة قيادة','📐 الآن: مسارات الدائرة العظمى توجّه الطائرات','🌍 قياسه: ~6,339 كم نصف قطر (الحقيقي: 6,371 كم — دقة 99.5%!)','⚙️ كل محرك نفاث يعود لآلياته','🏛️ كل طيار تدرّب في جامعات ابتكرتها','⚕️ حقائب الإسعاف الطبي على متن الطائرات تحمل إرثه','🗺️ مسارات الطيران تتبع الطرق التي رسمها أولاً'],
+  squawk:'سكواك',wind:'رياح',
+  proSquawks:{'7500':'اختطاف','7600':'عطل اتصالات','7700':'طوارئ'},
+  expertMetar:'🌦️ تقرير الطقس',expertAtmos:'🌡️ الغلاف الجوي',expertAirspace:'🗺️ المجال الجوي',expertWaypoints:'📍 نقاط الطريق',
+}
+};
+function t(key){return LANG[curLang]?.[key]??LANG.en[key]??key}
+
+function setLang(lang){
+  curLang=lang;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().toLowerCase()===lang));
+  // RTL for Arabic
+  document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  document.documentElement.lang=lang==='ar'?'ar':lang==='fr'?'fr':'en';
+  // Update all UI text
+  updateLangUI();
+  // Show/hide Arabic keyboard toggle
+  if(typeof updateArkbVisibility==='function')updateArkbVisibility();
+}
+
+function updateLangUI(){
+  const L=LANG[curLang]||LANG.en;
+  // Title
+  document.getElementById('appTitle').textContent=L.title;
+  document.title=L.title.replace('✈️ ','')+'— Ultimate Edition';
+  // Mode buttons
+  document.querySelectorAll('.mBtn').forEach(b=>{
+    const m=b.dataset.mode;
+    if(m==='sky')b.textContent=L.modeSky;
+    if(m==='learn')b.textContent=L.modeLearn;
+    if(m==='pro')b.textContent=L.modePro;
+    if(m==='expert')b.textContent=L.modeExpert;
+    if(m==='heritage')b.textContent=L.modeHeritage;
+  });
+  // Shape names
+  document.querySelectorAll('.shape-opt').forEach(el=>{
+    const s=el.dataset.shape;if(L.shapes[s])el.querySelector('.so-name').textContent=L.shapes[s];
+  });
+  // Search placeholder
+  const si=document.getElementById('searchInput');if(si)si.placeholder=L.searchPh;
+  // No match message
+  const nmT=document.querySelector('.nm-title');if(nmT)nmT.textContent=L.noPlanes;
+  const nmB=document.querySelector('.nm-btn');if(nmB)nmB.textContent=L.clearFilter;
+  // Info panel labels
+  const lblMap={'iAltL':'lblAlt','iSpdL':'lblSpd','iMachL':'lblMach','iHdgL':'lblHdg','iVsiL':'lblVsi','iFuelL':'lblFuel','iContrailL':'lblContrail','iLayerL':'lblLayer','iDistL':'lblDist','iISSL':'lblISS','iBearL':'lblBearing'};
+  for(const[id,key]of Object.entries(lblMap)){const el=document.getElementById(id);if(el)el.textContent=L[key]}
+  // Info panel static sub-labels
+  const distSub=document.getElementById('iDistSub');if(distSub)distSub.textContent=L.fromYou;
+  const fuelSub=document.getElementById('iFuelSub');if(fuelSub)fuelSub.textContent=L.kghr;
+  // SDR panel
+  document.getElementById('sdrPanelTitle').textContent=L.sdrTitle;
+  const scb=document.getElementById('sdrConnectBtn');if(scb)scb.textContent=sdrConnected?L.sdrDisconnect:L.sdrConnect;
+  const sdb=document.getElementById('sdrDemoBtn');if(sdb)sdb.textContent=L.sdrDemo;
+  if(!sdrConnected){const ss=document.getElementById('sdrStatus');if(ss)ss.textContent=L.sdrDisconnected}
+  document.getElementById('sdrLblMsg').textContent=L.sdrMessages;
+  document.getElementById('sdrLblRate').textContent=L.sdrMsgSec;
+  document.getElementById('sdrLblTrack').textContent=L.sdrTracked;
+  document.getElementById('sdrLblRange').textContent=L.sdrMaxRange;
+  document.getElementById('sdrLblUp').textContent=L.sdrUptime;
+  // Loading
+  const ldT=document.querySelector('.ld-text');if(ldT)ldT.innerHTML=L.loading+'<span class="ld-dots"></span>';
+  // Location picker
+  const lpT=document.querySelector('#locPicker h2');if(lpT)lpT.textContent=L.locTitle;
+  const lpS=document.querySelector('#locPicker .sub');if(lpS)lpS.textContent=L.locSub;
+  const gpsBtn=document.querySelector('#locPicker .primary');if(gpsBtn)gpsBtn.textContent=L.locGPS;
+  const cityIn=document.getElementById('cityInput');if(cityIn)cityIn.placeholder=L.locSearch;
+  // micro:bit
+  const mbT=document.getElementById('mbText');if(mbT)mbT.textContent=L.mbPair;
+  // Heritage panel updates
+  updateHeritageLang();
+  // Expert panel titles
+  const metT=document.querySelector('#metarP .ep-title');if(metT)metT.textContent=L.expertMetar;
+  const atmT=document.querySelector('#atmosP .ep-title');if(atmT)atmT.textContent=L.expertAtmos;
+  const airT=document.querySelector('#airspaceP .ep-title');if(airT)airT.textContent=L.expertAirspace;
+  const wpT=document.querySelector('#waypointP .ep-title');if(wpT)wpT.textContent=L.expertWaypoints;
+  // Pro panel titles
+  const sqT=document.querySelector('#sqP .ep-title');if(sqT)sqT.textContent=L.squawk;
+  const wiT=document.querySelector('#wiP .ep-title');if(wiT)wiT.textContent=L.wind;
+  // Refresh info panel if open
+  if(selectedPlane)showInfo(selectedPlane);
+}
+
+function updateHeritageLang(){
+  const L=LANG[curLang]||LANG.en;
+  const hpT=document.querySelector('.hp-title');if(hpT)hpT.textContent=L.hTitle;
+  // Section titles
+  const secTitles=document.querySelectorAll('.hp-sec-title');
+  const secKeys=['hTimeline','hStars','hVocab','hAstrolabe','hHubs','hPhysics'];
+  secTitles.forEach((el,i)=>{if(secKeys[i]&&L[secKeys[i]])el.innerHTML='<span class="icon">'+L[secKeys[i]].charAt(0)+'</span> '+L[secKeys[i]].substring(2)});
+  // Star/vocab subtitles
+  const starSub=document.getElementById('starsSub');if(starSub)starSub.textContent=L.hStarsSub;
+  const vocabSub=document.getElementById('vocabSub');if(vocabSub)vocabSub.textContent=L.hVocabSub;
+  // Star grid
+  const starGrid=document.getElementById('starGrid');
+  if(starGrid&&L.starData){
+    starGrid.innerHTML=L.starData.map(s=>`<div class="star-card"><div class="s-name">${s.n}</div><div class="s-arabic">${s.a}</div><div class="s-meaning">${s.m}</div><div class="s-use">${s.u}</div></div>`).join('');
+  }
+  // Hub grid
+  const hubGrid=document.getElementById('hubGrid');
+  if(hubGrid&&L.hubData){
+    hubGrid.innerHTML=L.hubData.map(h=>`<div class="hub-card"><div class="hf">${h.f}</div><div class="hn">${h.n}</div><div class="hc">${h.c}</div></div>`).join('');
+  }
+  // Timeline scholar descriptions
+  const tlItems=document.querySelectorAll('.tl-item:not(.modern)');
+  const scholarOrder=[0,1,2,3,4,5,6,7,8];// indexes into scholarDesc
+  tlItems.forEach((el,i)=>{
+    if(i<L.scholarDesc.length){
+      const desc=el.querySelector('.tl-desc');if(desc)desc.textContent=L.scholarDesc[i];
+      const conn=el.querySelector('.tl-math');if(conn&&L.scholarConn[i])conn.textContent=L.scholarConn[i];
+    }
+  });
+  // Wright Brothers & Today
+  const moderns=document.querySelectorAll('.tl-item.modern');
+  if(moderns[0]){moderns[0].querySelector('.tl-name').textContent=L.hWrightName;moderns[0].querySelector('.tl-desc').textContent=L.hWrightDesc}
+  if(moderns[1]){moderns[1].querySelector('.tl-name').textContent=L.hTodayName;const lb=moderns[1].querySelector('.live-badge');if(lb)lb.textContent=L.hLive}
+  // Astrolabe section
+  const astTitles=document.querySelectorAll('.ast-title');
+  if(astTitles[0])astTitles[0].textContent=L.hAstroOld;
+  if(astTitles[1])astTitles[1].textContent=L.hAstroNew;
+  const astDescs=document.querySelectorAll('.ast-desc');
+  if(astDescs[0])astDescs[0].textContent=L.hAstroOldD;
+  if(astDescs[1])astDescs[1].textContent=L.hAstroNewD;
+  // Math connection
+  const pcTitles=document.querySelectorAll('.pc-title');
+  const pcDescs=document.querySelectorAll('.pc-desc');
+  if(pcTitles[0])pcTitles[0].textContent=L.hMathConn;
+  if(pcDescs[0])pcDescs[0].textContent=L.hMathConnD;
+  if(pcTitles[1])pcTitles[1].textContent=L.hBernoulli;
+  if(pcDescs[1])pcDescs[1].textContent=L.hBernoulliD;
+  if(pcTitles[2])pcTitles[2].textContent=L.hGreatCircle;
+  if(pcDescs[2])pcDescs[2].textContent=L.hGreatCircleD;
+}
+
+const C=document.getElementById('skyCanvas'),X=C.getContext('2d');
+let W,H,dpr;
+let userLat=0,userLon=0,planes=[],mode='sky',selectedPlane=null;
+let hasGyro=false,gyroOff={a:0},viewOffX=0,viewOffY=0,isDrag=false,dSX=0,dSY=0,dOX=0,dOY=0;
+let viewZoom=1,pinchStart=0;
+let planeShape='jet';
+let stars=[],clouds=[],isNight=false,time=0,radarAngle=0;
+let shootingStars=[],radarTrails=[];
+let meteors=[],planeCountHistory=[],lastCountPush=0;
+let heritageToastTimer=null,lastHeritageTrigger=0;
+let demoMode=false,demoPlanes=[],fetchFails=0;
+
+// Demo plane generator - creates realistic simulated flights
+const DEMO_AIRLINES=['AFR','BAW','DLH','UAE','QTR','THY','SIA','AAL','DAL','UAL','RYR','EZY','KLM','SVA','ETH','RAM','ANA','JAL','QFA','ETD','FDB','AIC','MSR','MEA','TAP','IBE','SWR'];
+const DEMO_COUNTRIES=['France','United Kingdom','Germany','United Arab Emirates','Qatar','Turkey','Singapore','United States','United States','United States','Ireland','United Kingdom','Netherlands','Saudi Arabia','Ethiopia','Morocco','Japan','Japan','Australia','United Arab Emirates','United Arab Emirates','India','Egypt','Lebanon','Portugal','Spain','Switzerland'];
+function genDemoPlanes(n=12){
+  const dp=[];
+  for(let i=0;i<n;i++){
+    const ai=Math.floor(Math.random()*DEMO_AIRLINES.length);
+    const cs=DEMO_AIRLINES[ai]+String(Math.floor(100+Math.random()*900));
+    const hdg=Math.random()*360;
+    const alt=2000+Math.random()*10000;
+    const spd=180+Math.random()*120;
+    const dlat=(Math.random()-0.5)*2.8;
+    const dlon=(Math.random()-0.5)*2.8;
+    dp.push({
+      icao:'DEMO'+i.toString(16).toUpperCase().padStart(4,'0'),
+      callsign:cs,country:DEMO_COUNTRIES[ai],
+      lat:userLat+dlat,lon:userLon+dlon,
+      alt:alt,onGround:false,spd:spd,hdg:hdg,
+      vsi:Math.random()>0.7?(Math.random()-0.5)*8:0,
+      squawk:Math.random()>0.85?'7700':null,
+      trail:[{lat:userLat+dlat,lon:userLon+dlon}],
+      _demo:true,_dSpd:spd,_dHdg:hdg
+    });
+  }
+  return dp;
+}
+function updateDemoPlanes(){
+  demoPlanes.forEach(p=>{
+    const dt=12/3600;// 12s in hours
+    const dkm=p._dSpd*1.852*dt;// nm/h to km then * hours
+    const dlat=dkm*Math.cos(p._dHdg*Math.PI/180)/111.32;
+    const dlon=dkm*Math.sin(p._dHdg*Math.PI/180)/(111.32*Math.cos(p.lat*Math.PI/180));
+    p.lat+=dlat;p.lon+=dlon;
+    p._dHdg+=(Math.random()-0.5)*2;// slight heading drift
+    p.hdg=((p._dHdg%360)+360)%360;
+    p.alt+=p.vsi*dt*60;// vsi in m/s, dt in hours -> multiply appropriately
+    if(p.alt<1500)p.vsi=Math.abs(p.vsi);
+    if(p.alt>12000)p.vsi=-Math.abs(p.vsi);
+    p.trail=[...p.trail,{lat:p.lat,lon:p.lon}].slice(-15);
+    // Respawn if too far
+    if(Math.abs(p.lat-userLat)>2.5||Math.abs(p.lon-userLon)>2.5){
+      p.lat=userLat+(Math.random()-0.5)*2;
+      p.lon=userLon+(Math.random()-0.5)*2;
+      p.hdg=Math.random()*360;p._dHdg=p.hdg;
+      p.trail=[{lat:p.lat,lon:p.lon}];
+    }
+  });
+}
+function showDemoBadge(show){
+  let b=document.getElementById('demoBadge');
+  if(!b){b=document.createElement('div');b.id='demoBadge';b.style.cssText='position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:25;background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.3);border-radius:20px;padding:3px 12px;font-size:.6rem;font-weight:600;color:#fbbf24;font-family:var(--ff);cursor:pointer;backdrop-filter:blur(8px);transition:opacity .3s';b.innerHTML=t('demoBadge');b.onclick=()=>{demoMode=false;demoPlanes=[];fetchFails=0;b.style.opacity='0';setTimeout(()=>b.remove(),300);fetchPlanes()};document.body.appendChild(b)}
+  b.style.opacity=show?'1':'0';
+}
+
+const AL={AFR:'Air France',BAW:'British Airways',DLH:'Lufthansa',UAE:'Emirates',QTR:'Qatar Airways',THY:'Turkish Airlines',SIA:'Singapore Airlines',AAL:'American Airlines',DAL:'Delta',UAL:'United',RYR:'Ryanair',EZY:'easyJet',KLM:'KLM',SVA:'Saudia',ETH:'Ethiopian',RAM:'Royal Air Maroc',ANA:'ANA',JAL:'JAL',QFA:'Qantas',FDX:'FedEx',ETD:'Etihad',FDB:'flydubai',AIC:'Air India',MSR:'EgyptAir',MEA:'MEA',TAP:'TAP Portugal',IBE:'Iberia',SWR:'Swiss',ACA:'Air Canada',JBU:'JetBlue',LOT:'LOT Polish',ELY:'El Al',CSN:'China Southern',CCA:'Air China',SAS:'Scandinavian',FIN:'Finnair',AUA:'Austrian',BEL:'Brussels Airlines',TAM:'LATAM Brazil',AVA:'Avianca',ARG:'Aerolíneas Argentinas',LAN:'LATAM Chile',VOZ:'Virgin Australia',THA:'Thai Airways',MAS:'Malaysia Airlines',PAL:'Philippine Airlines',VNA:'Vietnam Airlines',GIA:'Garuda Indonesia',CPA:'Cathay Pacific',KAL:'Korean Air',AAR:'Asiana',AFL:'Aeroflot',PIA:'PIA Pakistan',BIA:'Biman Bangladesh',KQA:'Kenya Airways',SAA:'South African Airways',WZZ:'Wizz Air',NOZ:'Norwegian',VLG:'Vueling',EWG:'Eurowings',AZA:'ITA Airways',AMC:'Air Malta',BTI:'airBaltic',AEE:'Aegean Airlines',ROT:'TAROM',CSA:'Czech Airlines',TAR:'Tunisair',NCA:'Nippon Cargo',SWA:'Southwest',NKS:'Spirit Airlines',FFT:'Frontier',ASA:'Alaska Airlines',HAL:'Hawaiian',ICE:'Icelandair',RJA:'Royal Jordanian',GFA:'Gulf Air',OMA:'Oman Air',KUW:'Kuwait Airways',ISR:'Israir',SHY:'Sky Airlines',PGT:'Pegasus',OHY:'Onur Air',AEA:'Air Europa'};
+function getAL(cs){return cs&&cs.length>=3?AL[cs.substring(0,3).toUpperCase()]||null:null}
+const CUL={France:{f:'🇫🇷',g:'Bonjour!',t:['Eiffel Tower','Croissants 🥐']},
+'United Kingdom':{f:'🇬🇧',g:'Hello!',t:['Big Ben','Tea time ☕']},
+'United States':{f:'🇺🇸',g:'Hi!',t:['NASA 🚀','Grand Canyon']},
+Germany:{f:'🇩🇪',g:'Hallo!',t:['Engineering','Black Forest 🌲']},
+Turkey:{f:'🇹🇷',g:'Merhaba!',t:['Hagia Sophia','Baklava 🍯']},
+'United Arab Emirates':{f:'🇦🇪',g:'!مرحبا',t:['Burj Khalifa','Desert 🏜️']},
+Japan:{f:'🇯🇵',g:'こんにちは!',t:['Mt Fuji 🗻','Sushi 🍣']},
+Morocco:{f:'🇲🇦',g:'!مرحبا',t:['Marrakech','Tagine 🫕']},
+'Saudi Arabia':{f:'🇸🇦',g:'!السلام عليكم',t:['Makkah','Desert roses 🌹']},
+Qatar:{f:'🇶🇦',g:'!مرحبا',t:['Museum of Islamic Art']},
+Egypt:{f:'🇪🇬',g:'!أهلا',t:['Pyramids 🔺','Nile River']},
+Italy:{f:'🇮🇹',g:'Ciao!',t:['Colosseum','Pizza 🍕']},
+Spain:{f:'🇪🇸',g:'¡Hola!',t:['Sagrada Família','Flamenco 💃']},
+Netherlands:{f:'🇳🇱',g:'Hallo!',t:['Tulips 🌷','Windmills']},
+China:{f:'🇨🇳',g:'你好!',t:['Great Wall','Pandas 🐼']},
+India:{f:'🇮🇳',g:'नमस्ते!',t:['Taj Mahal','Spices 🌶️']},
+Brazil:{f:'🇧🇷',g:'Olá!',t:['Amazon 🌳','Carnival 🎭']},
+Australia:{f:'🇦🇺',g:"G'day!",t:['Sydney Opera House','Koalas 🐨']},
+Canada:{f:'🇨🇦',g:'Hello/Bonjour!',t:['Maple syrup 🍁','Rocky Mountains']},
+Russia:{f:'🇷🇺',g:'Привет!',t:['Kremlin','Trans-Siberian Railway 🚂']},
+'South Korea':{f:'🇰🇷',g:'안녕하세요!',t:['K-Pop 🎵','Kimchi']},
+Thailand:{f:'🇹🇭',g:'สวัสดี!',t:['Temples 🛕','Thai food 🍜']},
+Singapore:{f:'🇸🇬',g:'Hello!',t:['Gardens by the Bay 🌺','Merlion']},
+Ireland:{f:'🇮🇪',g:'Dia duit!',t:['Cliffs of Moher','Shamrocks ☘️']},
+Switzerland:{f:'🇨🇭',g:'Grüezi!',t:['Alps ⛰️','Chocolate 🍫']},
+Portugal:{f:'🇵🇹',g:'Olá!',t:['Pastéis de nata','Fado 🎶']},
+Greece:{f:'🇬🇷',g:'Γειά σου!',t:['Parthenon 🏛️','Olive oil']},
+Poland:{f:'🇵🇱',g:'Cześć!',t:['Pierogi','Kraków']},
+Sweden:{f:'🇸🇪',g:'Hej!',t:['Northern Lights 🌌','IKEA']},
+Norway:{f:'🇳🇴',g:'Hei!',t:['Fjords 🏔️','Vikings ⚔️']},
+Mexico:{f:'🇲🇽',g:'¡Hola!',t:['Tacos 🌮','Pyramids of Teotihuacan']},
+Argentina:{f:'🇦🇷',g:'¡Hola!',t:['Tango 💃','Patagonia']},
+Ethiopia:{f:'🇪🇹',g:'ሰላም!',t:['Coffee ☕ birthplace','Lalibela']},
+Kenya:{f:'🇰🇪',g:'Jambo!',t:['Safari 🦁','Great Migration']},
+'South Africa':{f:'🇿🇦',g:'Howzit!',t:['Table Mountain','Big Five 🐘']},
+Lebanon:{f:'🇱🇧',g:'!مرحبا',t:['Cedars 🌲','Hummus']},
+Indonesia:{f:'🇮🇩',g:'Halo!',t:['Bali 🏝️','Komodo dragons 🦎']},
+Malaysia:{f:'🇲🇾',g:'Hello!',t:['Petronas Towers','Rainforest 🌴']},
+Philippines:{f:'🇵🇭',g:'Kamusta!',t:['7,641 islands 🏝️','Jeepneys']},
+Vietnam:{f:'🇻🇳',g:'Xin chào!',t:['Ha Long Bay','Phở 🍜']},
+Israel:{f:'🇮🇱',g:'!שלום',t:['Jerusalem','Dead Sea']},
+Finland:{f:'🇫🇮',g:'Moi!',t:['Saunas 🧖','Santa Claus 🎅']},
+Austria:{f:'🇦🇹',g:'Servus!',t:['Vienna Opera 🎼','Strudel']},
+Belgium:{f:'🇧🇪',g:'Bonjour!',t:['Chocolate 🍫','Waffles 🧇']},
+Colombia:{f:'🇨🇴',g:'¡Hola!',t:['Coffee ☕','Emeralds 💎']},
+Pakistan:{f:'🇵🇰',g:'!السلام علیکم',t:['K2 🏔️','Lahore Fort']},
+Nigeria:{f:'🇳🇬',g:'Bawo ni!',t:['Nollywood 🎬','Jollof rice']},
+'New Zealand':{f:'🇳🇿',g:'Kia ora!',t:['Hobbiton','Kiwi birds 🥝']},
+Iceland:{f:'🇮🇸',g:'Halló!',t:['Geysers 🌋','Northern Lights']},
+Peru:{f:'🇵🇪',g:'¡Hola!',t:['Machu Picchu 🏔️','Llamas 🦙']}};
+
+// Extended country→flag map for search
+const CFLAGS={'Afghanistan':'🇦🇫','Albania':'🇦🇱','Algeria':'🇩🇿','Argentina':'🇦🇷','Australia':'🇦🇺','Austria':'🇦🇹','Azerbaijan':'🇦🇿','Bahrain':'🇧🇭','Bangladesh':'🇧🇩','Belgium':'🇧🇪','Bolivia':'🇧🇴','Brazil':'🇧🇷','Bulgaria':'🇧🇬','Cambodia':'🇰🇭','Canada':'🇨🇦','Chile':'🇨🇱','China':'🇨🇳','Colombia':'🇨🇴','Costa Rica':'🇨🇷','Croatia':'🇭🇷','Cuba':'🇨🇺','Cyprus':'🇨🇾','Czech Republic':'🇨🇿','Czechia':'🇨🇿','Denmark':'🇩🇰','Dominican Republic':'🇩🇴','Ecuador':'🇪🇨','Egypt':'🇪🇬','Ethiopia':'🇪🇹','Finland':'🇫🇮','France':'🇫🇷','Georgia':'🇬🇪','Germany':'🇩🇪','Ghana':'🇬🇭','Greece':'🇬🇷','Guatemala':'🇬🇹','Hong Kong':'🇭🇰','Hungary':'🇭🇺','Iceland':'🇮🇸','India':'🇮🇳','Indonesia':'🇮🇩','Iran':'🇮🇷','Iraq':'🇮🇶','Ireland':'🇮🇪','Israel':'🇮🇱','Italy':'🇮🇹','Jamaica':'🇯🇲','Japan':'🇯🇵','Jordan':'🇯🇴','Kazakhstan':'🇰🇿','Kenya':'🇰🇪','Kuwait':'🇰🇼','Latvia':'🇱🇻','Lebanon':'🇱🇧','Libya':'🇱🇾','Lithuania':'🇱🇹','Luxembourg':'🇱🇺','Malaysia':'🇲🇾','Malta':'🇲🇹','Mexico':'🇲🇽','Moldova':'🇲🇩','Mongolia':'🇲🇳','Morocco':'🇲🇦','Nepal':'🇳🇵','Netherlands':'🇳🇱','New Zealand':'🇳🇿','Nigeria':'🇳🇬','North Korea':'🇰🇵','Norway':'🇳🇴','Oman':'🇴🇲','Pakistan':'🇵🇰','Panama':'🇵🇦','Paraguay':'🇵🇾','Peru':'🇵🇪','Philippines':'🇵🇭','Poland':'🇵🇱','Portugal':'🇵🇹','Qatar':'🇶🇦','Romania':'🇷🇴','Russia':'🇷🇺','Saudi Arabia':'🇸🇦','Senegal':'🇸🇳','Serbia':'🇷🇸','Singapore':'🇸🇬','Slovakia':'🇸🇰','Slovenia':'🇸🇮','South Africa':'🇿🇦','South Korea':'🇰🇷','Spain':'🇪🇸','Sri Lanka':'🇱🇰','Sudan':'🇸🇩','Sweden':'🇸🇪','Switzerland':'🇨🇭','Syria':'🇸🇾','Taiwan':'🇹🇼','Tanzania':'🇹🇿','Thailand':'🇹🇭','Tunisia':'🇹🇳','Turkey':'🇹🇷','Ukraine':'🇺🇦','United Arab Emirates':'🇦🇪','United Kingdom':'🇬🇧','United States':'🇺🇸','Uruguay':'🇺🇾','Uzbekistan':'🇺🇿','Venezuela':'🇻🇪','Vietnam':'🇻🇳','Yemen':'🇾🇪'};
+// Airline prefix→country mapping for callsign-based matching
+const AIRLINE_COUNTRY={'AFR':'France','BAW':'United Kingdom','DLH':'Germany','UAE':'United Arab Emirates','QTR':'Qatar','THY':'Turkey','SIA':'Singapore','AAL':'United States','DAL':'United States','UAL':'United States','RYR':'Ireland','EZY':'United Kingdom','KLM':'Netherlands','SVA':'Saudi Arabia','ETH':'Ethiopia','RAM':'Morocco','ANA':'Japan','JAL':'Japan','QFA':'Australia','FDX':'United States','ETD':'United Arab Emirates','FDB':'United Arab Emirates','AIC':'India','MSR':'Egypt','MEA':'Lebanon','TAP':'Portugal','IBE':'Spain','SWR':'Switzerland','ACA':'Canada','JBU':'United States','LOT':'Poland','ELY':'Israel','CSN':'China','CCA':'China','SAS':'Sweden','FIN':'Finland','AUA':'Austria','BEL':'Belgium','TAM':'Brazil','AVA':'Colombia','ARG':'Argentina','LAN':'Chile','VOZ':'Australia','RBA':'Brunei','THA':'Thailand','MAS':'Malaysia','PAL':'Philippines','VNA':'Vietnam','GIA':'Indonesia','CPA':'Hong Kong','KAL':'South Korea','AAR':'South Korea','AFL':'Russia','TUR':'Turkey','PIA':'Pakistan','BIA':'Bangladesh','SLK':'Sri Lanka','KQA':'Kenya','SAA':'South Africa','NGA':'Nigeria','ROT':'Romania','WZZ':'Hungary','NOZ':'Norway','VLG':'Spain','EWG':'Germany','ENT':'Estonia','BTI':'Latvia','AMC':'Turkey'};
+let filterCountry=null,filterFlag=null,sugHighlight=-1;
+
+const SQUAWK_S={'7500':'HIJACK','7600':'RADIO FAIL','7700':'EMERGENCY'};
+
+// Waypoints near major locations
+const WAYPOINTS=[
+  {id:'MOPAR',lat:49.0,lon:2.5},{id:'OKRIX',lat:48.7,lon:2.8},{id:'BANOX',lat:48.5,lon:1.8},
+  {id:'LERGA',lat:49.2,lon:1.5},{id:'DIKOL',lat:48.3,lon:3.2},{id:'TOLNA',lat:48.9,lon:3.5},
+  {id:'VEBEK',lat:51.2,lon:-0.5},{id:'TIMBA',lat:51.5,lon:0.2},{id:'LOGAN',lat:40.6,lon:-74.2},
+  {id:'CAMRN',lat:40.9,lon:-73.8},{id:'DENAL',lat:25.3,lon:55.1},{id:'SENPA',lat:25.0,lon:55.5},
+  {id:'SADIK',lat:33.7,lon:-7.3},{id:'NIKAP',lat:41.2,lon:28.5},{id:'ANVIX',lat:25.5,lon:55.8}
+];
+
+// Audio system
+let audioCtx=null,audioOn=false,windNode=null;
+function toggleAudio(){
+  const btn=document.getElementById('audioBtn');
+  if(!audioCtx){audioCtx=new(window.AudioContext||window.webkitAudioContext)();createWind()}
+  audioOn=!audioOn;btn.textContent=audioOn?'🔊':'🔇';btn.style.borderColor=audioOn?'rgba(52,211,153,0.3)':'rgba(255,255,255,0.08)';
+  if(audioOn){audioCtx.resume();if(windNode)windNode.gain.value=0.04}
+  else if(windNode)windNode.gain.value=0;
+}
+function createWind(){
+  const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*2,audioCtx.sampleRate);
+  const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*0.5;
+  const src=audioCtx.createBufferSource();src.buffer=buf;src.loop=true;
+  const filt=audioCtx.createBiquadFilter();filt.type='lowpass';filt.frequency.value=400;
+  const g=audioCtx.createGain();g.gain.value=0;
+  src.connect(filt);filt.connect(g);g.connect(audioCtx.destination);src.start();windNode=g;
+}
+// Sound effects (synthesized, no files needed)
+function sfxTap(){
+  if(!audioOn||!audioCtx)return;
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type='sine';o.frequency.setValueAtTime(800,audioCtx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(400,audioCtx.currentTime+0.15);
+  g.gain.setValueAtTime(0.08,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.15);
+  o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+0.15);
+}
+function sfxMode(){
+  if(!audioOn||!audioCtx)return;
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type='triangle';o.frequency.setValueAtTime(500,audioCtx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(900,audioCtx.currentTime+0.1);
+  g.gain.setValueAtTime(0.05,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.12);
+  o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+0.12);
+}
+function sfxRadar(){
+  if(!audioOn||!audioCtx)return;
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type='sine';o.frequency.setValueAtTime(1200,audioCtx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(600,audioCtx.currentTime+0.3);
+  g.gain.setValueAtTime(0.03,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.3);
+  o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+0.3);
+}
+
+// Contrail prediction
+function contrailCheck(alt,temp){
+  if(alt>8000&&temp<-40)return{likely:true,msg:'Persistent contrails',detail:'Cold enough for ice crystals'};
+  if(alt>6000&&temp<-30)return{likely:true,msg:'Short-lived contrails',detail:'May form briefly'};
+  return{likely:false,msg:'No contrails',detail:'Too warm for ice'};
+}
+// Fuel burn estimate
+function estFuelBurn(alt,spd){const b=2500,af=alt>10000?0.8:alt>5000?1.0:1.3;return Math.round(b*af*((spd||250)/250))}
+// Atmosphere layer
+function atmosLayer(alt){
+  const L=LANG[curLang]||LANG.en;const a=L.atmos;
+  if(alt<11000)return{name:a.tropo,desc:a.tropoD};
+  if(alt<20000)return{name:a.pause,desc:a.pauseD};
+  if(alt<50000)return{name:a.strato,desc:a.stratoD};
+  return{name:a.meso,desc:a.mesoD};
+}
+function altFun(m){const L=LANG[curLang]||LANG.en;return L.altFun(m)}
+function spdFun(k){const L=LANG[curLang]||LANG.en;return L.spdFun(k)}
+function tempAt(m){return Math.round(15-m*.0065)}
+function machAt(s,a){const t=288.15-.0065*a;return(s/Math.sqrt(1.4*287.05*Math.max(t,200))).toFixed(2)}
+function hdgDir(d){return['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(d/22.5)%16]}
+function toFL(m){return'FL'+Math.round(m/30.48/100).toString().padStart(3,'0')}
+function distKm(a,b,c,d){const R=6371,x=(c-a)*Math.PI/180,y=(d-b)*Math.PI/180,z=Math.sin(x/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z))}
+
+// ═══════ HERITAGE TRIGGERS ═══════
+const HERITAGE_SCHOLARS=[
+  {name:'Al-Khwarizmi',arabic:'الخوارزمي',dates:'780–850 CE',icon:'🧮',
+   trigger:'algebra',
+   body:'Every flight computer calculates routes using ALGORITHMS — a word derived from his name, Al-Khwarizmi. He invented algebra (al-jabr), the mathematical language that powers every autopilot, GPS receiver, and air traffic control system.',
+   connection:p=>`Right now, algebra is computing the trajectory of ${(p.callsign||'').trim()} at ${Math.round((p.spd||0)*3.6)}km/h`},
+  {name:'Abbas ibn Firnas',arabic:'عباس بن فرناس',dates:'810–887 CE',icon:'🦅',
+   trigger:'flight',
+   body:'In 875 CE in Córdoba, he built wings of silk and feathers and launched from a cliff — the first documented controlled flight attempt. He glided for several minutes. 600 years before da Vinci drew wings, a Muslim scholar was flying.',
+   connection:p=>`${(p.callsign||'').trim()} flies at ${Math.round(p.alt||0)}m — ibn Firnas dreamed of this moment`},
+  {name:'Ibn al-Haytham',arabic:'ابن الهيثم',dates:'965–1040 CE',icon:'👁️',
+   trigger:'optics',
+   body:'The Father of Optics wrote the "Book of Optics" (Kitab al-Manazir), pioneering the scientific method. He explained how light travels, refracts, and reflects. Every cockpit display, radar screen, and heads-up display uses his discoveries.',
+   connection:p=>`Radar tracking ${(p.callsign||'').trim()} — built on Ibn al-Haytham's optics`},
+  {name:'Al-Battani',arabic:'البتاني',dates:'858–929 CE',icon:'📐',
+   trigger:'trigonometry',
+   body:'His refined trigonometric tables and spherical geometry made celestial navigation possible. The great circle routes that planes fly — the shortest paths on Earth\'s surface — are calculated using his mathematics.',
+   connection:p=>`The heading of ${Math.round(p.hdg||0)}° uses spherical trigonometry he perfected`},
+  {name:'Al-Biruni',arabic:'البيروني',dates:'973–1048 CE',icon:'🌍',
+   trigger:'earth',
+   body:'He calculated Earth\'s circumference to within 0.5% of the actual value, using a mountain and trigonometry. Every navigation system depends on knowing Earth\'s exact size and shape — his measurement.',
+   connection:p=>{const d=distKm(userLat,userLon,p.lat,p.lon);return`${(p.callsign||'').trim()} is ${Math.round(d)}km away — distance computed on the globe Al-Biruni measured`}},
+  {name:'Al-Jazari',arabic:'الجزري',dates:'1136–1206 CE',icon:'⚙️',
+   trigger:'engine',
+   body:'His "Book of Knowledge of Ingenious Mechanical Devices" introduced crankshafts, camshafts, and programmable machines. The jet engines powering every plane trace their mechanical lineage to his inventions.',
+   connection:p=>`The engines of ${(p.callsign||'').trim()} burn fuel with mechanisms Al-Jazari pioneered`},
+  {name:'Al-Idrisi',arabic:'الإدريسي',dates:'1100–1165 CE',icon:'🗺️',
+   trigger:'maps',
+   body:'He created the Tabula Rogeriana, the most accurate world map for 300 years. He mapped trade routes, coastlines, and distances between cities. Every flight route plotted on a navigation chart descends from his cartography.',
+   connection:p=>{const dir=hdgDir(p.hdg||0);return`${(p.callsign||'').trim()} heading ${dir} — flying routes Al-Idrisi first mapped`}},
+  {name:'Al-Zahrawi',arabic:'الزهراوي',dates:'936–1013 CE',icon:'⚕️',
+   trigger:'safety',
+   body:'Father of modern surgery, his encyclopaedia described over 200 surgical instruments. Aviation medicine and the life-saving equipment aboard every aircraft — oxygen systems, surgical kits — follow his tradition of systematic medical care.',
+   connection:p=>`${(p.callsign||'').trim()} carries medical supplies following Al-Zahrawi's legacy`},
+  {name:'Fatima al-Fihri',arabic:'فاطمة الفهري',dates:'800–880 CE',icon:'🏛️',
+   trigger:'knowledge',
+   body:'She founded the University of Al-Qarawiyyin in 859 CE — the world\'s oldest existing university. The system of education that trained the astronomers, mathematicians, and engineers who made flight possible traces back to her vision.',
+   connection:p=>`Every pilot trained at universities following the model Fatima al-Fihri created`}
+];
+let heritageRotation=0;
+
+function triggerHeritage(plane){
+  if(Date.now()-lastHeritageTrigger<30000)return;
+  // Rotate through scholars, with contextual bias
+  let scholar;
+  if(plane.spd&&plane.spd>200&&Math.random()>0.4) scholar=HERITAGE_SCHOLARS[0];
+  else if(plane.alt&&plane.alt>8000&&Math.random()>0.4) scholar=HERITAGE_SCHOLARS[1];
+  else{scholar=HERITAGE_SCHOLARS[heritageRotation%HERITAGE_SCHOLARS.length];heritageRotation++}
+
+  showHeritageToast(scholar,plane);
+  lastHeritageTrigger=Date.now();
+}
+
+function showHeritageToast(scholar,plane){
+  document.getElementById('htIcon').textContent=scholar.icon;
+  document.getElementById('htName').textContent=scholar.name;
+  document.getElementById('htArabic').textContent=scholar.arabic;
+  document.getElementById('htDates').textContent=scholar.dates;
+  document.getElementById('htBody').textContent=scholar.body;
+  document.getElementById('htConn').textContent=scholar.connection(plane);
+  document.getElementById('heritageToast').classList.add('show');
+  clearTimeout(heritageToastTimer);
+  heritageToastTimer=setTimeout(closeToast,12000);
+}
+function closeToast(){document.getElementById('heritageToast').classList.remove('show')}
+function closeHeritage(){document.getElementById('heritagePanel').classList.remove('show')}
+
+function resize(){
+  dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  C.width=W*dpr;C.height=H*dpr;C.style.width=W+'px';C.style.height=H+'px';
+  X.setTransform(dpr,0,0,dpr,0,0);
+  stars=[];for(let i=0;i<W*H/1000;i++)stars.push({x:Math.random()*W*1.5-W*.25,y:Math.random()*H*.6,r:Math.random()*1.2+.3,tw:Math.random()*6.28,sp:.5+Math.random()*2});
+  clouds=[];for(let i=0;i<6;i++)clouds.push({x:Math.random()*W*2-W*.5,y:H*.35+Math.random()*H*.4,w:120+Math.random()*180,h:35+Math.random()*55,sp:.08+Math.random()*.12,op:.03+Math.random()*.05});
+  const rc=document.getElementById('radarCanvas');rc.width=W*dpr;rc.height=H*dpr;rc.style.width=W+'px';rc.style.height=H+'px';
+}
+
+function drawSky(){
+  // Sunrise/sunset based on user location & day of year
+  const now=new Date(),doy=Math.floor((now-new Date(now.getFullYear(),0,0))/(1000*60*60*24));
+  const decl=23.45*Math.sin(2*Math.PI*(284+doy)/365)*Math.PI/180;
+  const latR=(userLat||48.8)*Math.PI/180;
+  const cosHA=-Math.sin(latR)*Math.sin(decl)/(Math.cos(latR)*Math.cos(decl));
+  const ha=Math.abs(cosHA)<=1?Math.acos(cosHA)*180/Math.PI:cosHA>1?0:180;
+  const solarNoon=12-((userLon||2.3)/15);
+  const sunriseUTC=solarNoon-ha/15,sunsetUTC=solarNoon+ha/15;
+  const utcHr=now.getUTCHours()+now.getUTCMinutes()/60;
+  isNight=utcHr<sunriseUTC||utcHr>sunsetUTC;
+  const twilightDawn=Math.abs(utcHr-sunriseUTC)<0.6,twilightDusk=Math.abs(utcHr-sunsetUTC)<0.6;
+  const cols=isNight?[{p:0,c:'#050a14'},{p:.4,c:'#0b1428'},{p:1,c:'#283c78'}]:
+    twilightDawn||twilightDusk?[{p:0,c:'#1a1040'},{p:.3,c:'#8b3a62'},{p:.6,c:'#d4764e'},{p:1,c:'#f4c26b'}]:
+    [{p:0,c:'#0a1935'},{p:.2,c:'#152d5e'},{p:.45,c:'#2a5a9a'},{p:.7,c:'#5ba3d9'},{p:1,c:'#c3ebfa'}];
+  const g=X.createLinearGradient(0,0,0,H);cols.forEach(c=>g.addColorStop(c.p,c.c));X.fillStyle=g;X.fillRect(0,0,W,H);
+}
+function drawStars(){const v=isNight?1:.12;stars.forEach(s=>{X.globalAlpha=(.3+.7*(.5+.5*Math.sin(s.tw+time*s.sp)))*v;X.fillStyle='#fff';X.beginPath();X.arc(s.x+viewOffX*.02,s.y+viewOffY*.02,s.r,0,6.28);X.fill()});X.globalAlpha=1;
+  // Shooting stars in night mode
+  if(isNight){
+    if(Math.random()<0.003&&meteors.length<2)meteors.push({x:Math.random()*W,y:Math.random()*H*.3,vx:3+Math.random()*4,vy:2+Math.random()*3,life:1,len:30+Math.random()*50});
+    meteors.forEach(m=>{m.x+=m.vx;m.y+=m.vy;m.life-=0.02;
+      if(m.life>0){const g=X.createLinearGradient(m.x,m.y,m.x-m.vx*m.len/5,m.y-m.vy*m.len/5);g.addColorStop(0,`rgba(255,255,255,${m.life*.8})`);g.addColorStop(1,'transparent');X.strokeStyle=g;X.lineWidth=1.5;X.beginPath();X.moveTo(m.x,m.y);X.lineTo(m.x-m.vx*m.len/5,m.y-m.vy*m.len/5);X.stroke()}
+    });
+    meteors=meteors.filter(m=>m.life>0&&m.x<W+50&&m.y<H+50);
+  }
+}
+function drawCompass(){
+  const cx=W-32,cy=H-32,r=20;
+  X.globalAlpha=0.35;
+  // Outer ring
+  X.strokeStyle='rgba(255,255,255,0.2)';X.lineWidth=1;X.beginPath();X.arc(cx,cy,r,0,6.28);X.stroke();
+  // Tick marks
+  for(let i=0;i<12;i++){const a=i*Math.PI/6;const il=i%3===0?5:2;X.strokeStyle=i%3===0?'rgba(255,255,255,0.3)':'rgba(255,255,255,0.1)';X.lineWidth=i%3===0?1:.5;X.beginPath();X.moveTo(cx+Math.cos(a)*(r-il),cy+Math.sin(a)*(r-il));X.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);X.stroke()}
+  // North needle
+  const nA=-Math.PI/2;
+  X.fillStyle='rgba(255,80,80,0.6)';X.beginPath();X.moveTo(cx+Math.cos(nA)*r*.9,cy+Math.sin(nA)*r*.9);X.lineTo(cx+Math.cos(nA-.15)*r*.3,cy+Math.sin(nA-.15)*r*.3);X.lineTo(cx+Math.cos(nA+.15)*r*.3,cy+Math.sin(nA+.15)*r*.3);X.closePath();X.fill();
+  // South needle
+  X.fillStyle='rgba(255,255,255,0.15)';X.beginPath();X.moveTo(cx+Math.cos(nA+Math.PI)*r*.7,cy+Math.sin(nA+Math.PI)*r*.7);X.lineTo(cx+Math.cos(nA+Math.PI-.15)*r*.2,cy+Math.sin(nA+Math.PI-.15)*r*.2);X.lineTo(cx+Math.cos(nA+Math.PI+.15)*r*.2,cy+Math.sin(nA+Math.PI+.15)*r*.2);X.closePath();X.fill();
+  // Labels
+  X.font='bold 7px var(--ff)';X.textAlign='center';X.textBaseline='middle';
+  X.fillStyle='rgba(255,100,100,0.7)';X.fillText('N',cx,cy-r-7);
+  X.fillStyle='rgba(255,255,255,0.25)';X.fillText('E',cx+r+7,cy);X.fillText('W',cx-r-7,cy);X.fillText('S',cx,cy+r+7);
+  // Center dot
+  X.fillStyle='rgba(91,163,217,0.5)';X.beginPath();X.arc(cx,cy,2,0,6.28);X.fill();
+  X.globalAlpha=1;
+}
+// Distance rings on sky view
+function drawDistanceRings(){
+  if(mode==='pro')return;
+  // Expert mode: subtle coordinate grid
+  if(mode==='expert'){
+    X.globalAlpha=0.03;X.strokeStyle='rgba(192,132,252,0.5)';X.lineWidth=0.5;X.setLineDash([2,8]);
+    const gridStep=80*viewZoom;
+    for(let gx=W/2+viewOffX%gridStep;gx<W;gx+=gridStep){X.beginPath();X.moveTo(gx,0);X.lineTo(gx,H);X.stroke()}
+    for(let gx=W/2+viewOffX%gridStep-gridStep;gx>0;gx-=gridStep){X.beginPath();X.moveTo(gx,0);X.lineTo(gx,H);X.stroke()}
+    for(let gy=H/2+viewOffY%gridStep;gy<H;gy+=gridStep){X.beginPath();X.moveTo(0,gy);X.lineTo(W,gy);X.stroke()}
+    for(let gy=H/2+viewOffY%gridStep-gridStep;gy>0;gy-=gridStep){X.beginPath();X.moveTo(0,gy);X.lineTo(W,gy);X.stroke()}
+    X.setLineDash([]);X.globalAlpha=1;
+  }
+  const rings=[50,100,150];
+  X.globalAlpha=mode==='expert'?0.04:0.06;
+  rings.forEach(km=>{
+    const rng=200/viewZoom;
+    const screenR=(km/rng)*(W/2);
+    if(screenR<20||screenR>W*1.5)return;
+    X.strokeStyle=mode==='expert'?'rgba(192,132,252,0.5)':'rgba(255,255,255,0.5)';X.lineWidth=0.5;X.setLineDash([4,6]);
+    X.beginPath();X.arc(W/2+viewOffX,H/2+viewOffY,screenR,0,6.28);X.stroke();
+    X.setLineDash([]);
+    X.font='500 8px var(--fm)';X.fillStyle=mode==='expert'?'rgba(192,132,252,0.8)':'rgba(255,255,255,0.8)';X.textAlign='center';
+    X.fillText(`${km}km`,W/2+viewOffX,H/2+viewOffY-screenR-4);
+  });
+  X.globalAlpha=1;
+}
+function drawClouds(){
+  // Horizon haze
+  const hg=X.createLinearGradient(0,H*.65,0,H);
+  hg.addColorStop(0,'transparent');
+  hg.addColorStop(1,isNight?'rgba(15,20,40,0.4)':'rgba(200,220,240,0.25)');
+  X.fillStyle=hg;X.fillRect(0,H*.65,W,H*.35);
+  // Clouds with layered puffs
+  clouds.forEach(c=>{
+    c.x+=c.sp;if(c.x>W+c.w)c.x=-c.w*2;
+    const cx=c.x+viewOffX*.15,cy=c.y+viewOffY*.1;
+    X.filter=`blur(${c.w*.15}px)`;
+    // Main body
+    X.fillStyle=isNight?`rgba(180,200,220,${c.op*.4})`:`rgba(255,255,255,${c.op})`;
+    X.beginPath();X.ellipse(cx,cy,c.w,c.h,0,0,6.28);X.fill();
+    // Secondary puffs for volume
+    X.fillStyle=isNight?`rgba(190,210,230,${c.op*.25})`:`rgba(255,255,255,${c.op*.7})`;
+    X.beginPath();X.ellipse(cx-c.w*.4,cy-c.h*.2,c.w*.5,c.h*.7,0,0,6.28);X.fill();
+    X.beginPath();X.ellipse(cx+c.w*.35,cy-c.h*.15,c.w*.45,c.h*.65,0,0,6.28);X.fill();
+    X.filter='none';
+  });
+}
+function drawCelestial(){
+  if(isNight){
+    const m=W*.78+viewOffX*.05,n=H*.12+viewOffY*.03;
+    // Moon glow
+    const mg=X.createRadialGradient(m,n,12,m,n,60);mg.addColorStop(0,'rgba(200,210,230,0.08)');mg.addColorStop(1,'transparent');X.fillStyle=mg;X.beginPath();X.arc(m,n,60,0,6.28);X.fill();
+    // Moon body
+    X.fillStyle='rgba(232,234,240,0.9)';X.beginPath();X.arc(m,n,18,0,6.28);X.fill();
+    // Crescent shadow
+    X.fillStyle='#182850';X.beginPath();X.arc(m+6,n-3,14,0,6.28);X.fill();
+    // Craters
+    X.fillStyle='rgba(200,205,215,0.6)';X.beginPath();X.arc(m-4,n+2,2.5,0,6.28);X.fill();
+    X.fillStyle='rgba(210,215,225,0.5)';X.beginPath();X.arc(m-8,n-5,1.8,0,6.28);X.fill();
+    X.beginPath();X.arc(m-2,n+8,1.2,0,6.28);X.fill();
+  } else {
+    const s=W*.22+viewOffX*.06,t=H*.1+viewOffY*.04;
+    // Outer halo
+    const oh=X.createRadialGradient(s,t,10,s,t,140);oh.addColorStop(0,'rgba(255,224,102,0.12)');oh.addColorStop(0.5,'rgba(255,200,80,0.04)');oh.addColorStop(1,'transparent');X.fillStyle=oh;X.beginPath();X.arc(s,t,140,0,6.28);X.fill();
+    // Inner glow
+    const g=X.createRadialGradient(s,t,6,s,t,50);g.addColorStop(0,'rgba(255,240,180,0.35)');g.addColorStop(1,'transparent');X.fillStyle=g;X.beginPath();X.arc(s,t,50,0,6.28);X.fill();
+    // Sun disc
+    X.fillStyle='#ffe066';X.beginPath();X.arc(s,t,12,0,6.28);X.fill();
+    // Bright center
+    X.fillStyle='rgba(255,255,230,0.6)';X.beginPath();X.arc(s,t,6,0,6.28);X.fill();
+    // Subtle lens flare
+    X.globalAlpha=0.06;X.fillStyle='rgba(255,200,100,1)';
+    X.beginPath();X.arc(s+35,t+25,4,0,6.28);X.fill();
+    X.beginPath();X.arc(s+60,t+42,2.5,0,6.28);X.fill();
+    X.globalAlpha=1;
+  }
+}
+
+// Heritage mode: draw Arabic star names
+function drawArabicStars(){
+  if(mode!=='heritage'||!isNight)return;
+  const arabicStars=[
+    {name:'Altair',arabic:'الطائر',x:.6,y:.15},{name:'Vega',arabic:'النسر',x:.3,y:.08},
+    {name:'Deneb',arabic:'ذنب',x:.45,y:.05},{name:'Betelgeuse',arabic:'يد الجوزاء',x:.75,y:.25},
+    {name:'Aldebaran',arabic:'الدبران',x:.2,y:.2},{name:'Rigel',arabic:'رجل',x:.85,y:.18}
+  ];
+  arabicStars.forEach(s=>{
+    const sx=s.x*W+viewOffX*.03,sy=s.y*H+viewOffY*.02;
+    // Star glow
+    X.fillStyle='rgba(212,168,83,0.6)';X.beginPath();X.arc(sx,sy,2.5,0,6.28);X.fill();
+    X.fillStyle='rgba(212,168,83,0.1)';X.beginPath();X.arc(sx,sy,10,0,6.28);X.fill();
+    // Name
+    X.font='600 9px var(--ff)';X.fillStyle='rgba(212,168,83,0.7)';X.textAlign='center';
+    X.fillText(s.name,sx,sy+14);
+    X.font='10px var(--fa)';X.fillStyle='rgba(212,168,83,0.4)';
+    X.fillText(s.arabic,sx,sy+24);
+  });
+}
+
+function toScr(lat,lon,alt){
+  const dx=(lon-userLon)*111.32*Math.cos(userLat*Math.PI/180),dy=-(lat-userLat)*110.574;
+  const rng=200/viewZoom,ak=(alt||10000)/1000,af=Math.max(.3,1-ak/15);
+  return{x:W/2+(dx/rng)*(W/2)+viewOffX,y:H/2+(dy/rng)*(H/2)+viewOffY-ak*2,sz:(12+24*af)*Math.min(viewZoom,1.5)};
+}
+
+// ========== SDR Data Source ==========
+let sdrUrl='',sdrConnected=false,sdrStatsTimer=null;
+
+// ICAO hex address ranges → country (for SDR: raw ADS-B has no country field)
+const ICAO_RANGES=[
+  [0xA00000,0xAFFFFF,'United States'],[0xC00000,0xC3FFFF,'Canada'],
+  [0xE00000,0xE3FFFF,'Argentina'],[0xE40000,0xE7FFFF,'Brazil'],
+  [0x400000,0x43FFFF,'France'],[0x440000,0x447FFF,'Germany'],
+  [0x448000,0x44FFFF,'Germany'],[0x480000,0x4BFFFF,'Germany'],
+  [0x3C0000,0x3FFFFF,'Germany'],
+  [0x840000,0x87FFFF,'United Kingdom'],[0x000000,0x003FFF,'Zimbabwe'],
+  [0x004000,0x0043FF,'Mozambique'],[0x006000,0x006FFF,'South Africa'],
+  [0x008000,0x00FFFF,'Egypt'],[0x010000,0x017FFF,'Nigeria'],
+  [0x018000,0x01FFFF,'Ethiopia'],[0x020000,0x027FFF,'Kenya'],
+  [0x028000,0x02FFFF,'Tanzania'],[0x040000,0x05FFFF,'Morocco'],
+  [0x060000,0x067FFF,'Tunisia'],[0x068000,0x06FFFF,'Algeria'],
+  [0x070000,0x077FFF,'Ghana'],[0x200000,0x27FFFF,'India'],
+  [0x500000,0x5003FF,'Saudi Arabia'],[0x600000,0x6003FF,'Iran'],
+  [0x700000,0x7003FF,'Pakistan'],[0x680000,0x6803FF,'Qatar'],
+  [0x740000,0x7403FF,'United Arab Emirates'],[0x710000,0x7103FF,'Turkey'],
+  [0x780000,0x7803FF,'Israel'],[0x300000,0x33FFFF,'Italy'],
+  [0x340000,0x37FFFF,'Spain'],[0x380000,0x3BFFFF,'Netherlands'],
+  [0x470000,0x477FFF,'Austria'],[0x478000,0x47FFFF,'Belgium'],
+  [0x494000,0x497FFF,'Switzerland'],[0x498000,0x49CFFF,'Czech Republic'],
+  [0x49D000,0x49FFFF,'Poland'],[0x4A0000,0x4A3FFF,'Hungary'],
+  [0x4A4000,0x4A7FFF,'Romania'],[0x4B0000,0x4B7FFF,'Denmark'],
+  [0x4B8000,0x4BFFFF,'Greece'],[0x4C0000,0x4C7FFF,'Norway'],
+  [0x4C8000,0x4CFFFF,'Sweden'],[0x4D0000,0x4D03FF,'Finland'],
+  [0x500000,0x5003FF,'Portugal'],[0x501000,0x501FFF,'Ireland'],
+  [0x508000,0x50FFFF,'Iceland'],[0x780000,0x7BFFFF,'Japan'],
+  [0x7C0000,0x7FFFFF,'Australia'],[0x800000,0x83FFFF,'China'],
+  [0x880000,0x887FFF,'South Korea'],[0x888000,0x88FFFF,'Singapore'],
+  [0x890000,0x8903FF,'Thailand'],[0x894000,0x8943FF,'Malaysia'],
+  [0x898000,0x8983FF,'Indonesia'],[0x8A0000,0x8A7FFF,'Philippines'],
+  [0x8B0000,0x8B3FFF,'Vietnam'],[0xC80000,0xC87FFF,'Mexico'],
+  [0x0B0000,0x0B7FFF,'New Zealand'],[0xCC0000,0xCC3FFF,'Colombia'],
+  [0xCD0000,0xCD3FFF,'Peru'],[0xD00000,0xD7FFFF,'Russia'],
+];
+function icaoToCountry(icao){
+  const hex=typeof icao==='string'?parseInt(icao,16):icao;
+  if(!hex||isNaN(hex))return null;
+  for(const [lo,hi,country] of ICAO_RANGES){if(hex>=lo&&hex<=hi)return country}
+  return null;
+}
+
+function toggleSdrPanel(){
+  const p=document.getElementById('sdrPanel');p.classList.toggle('show');
+}
+async function toggleSdr(){
+  if(sdrConnected){disconnectSdr();return}
+  const url=document.getElementById('sdrUrl').value.trim().replace(/\/$/,'');
+  if(!url){document.getElementById('sdrStatus').textContent='⚠️ Enter SDR server URL';return}
+
+  document.getElementById('sdrStatus').textContent='Connecting...';
+  try{
+    const resp=await fetch(url+'/health');
+    const data=await resp.json();
+    if(data.status==='ok'){
+      sdrUrl=url;sdrConnected=true;
+      document.getElementById('sdrBtn').classList.add('connected');
+      document.getElementById('sdrConnectBtn').textContent=t('sdrDisconnect');
+      document.getElementById('sdrConnectBtn').className='sdr-btn sdr-disconnect';
+      document.getElementById('sdrStatus').textContent=t('sdrConnected');
+      document.getElementById('sdrStats').style.display='block';
+      document.getElementById('sdrBadge').classList.add('show');
+      // Start polling stats
+      updateSdrStats();
+      sdrStatsTimer=setInterval(updateSdrStats,3000);
+      // Force immediate fetch with SDR source
+      fetchPlanes();
+    }
+  }catch(err){
+    document.getElementById('sdrStatus').textContent=t('sdrCantReach')+' '+url;
+  }
+}
+function disconnectSdr(){
+  const wasDemoSDR=(sdrUrl==='__demo__');
+  sdrConnected=false;sdrUrl='';
+  document.getElementById('sdrBtn').classList.remove('connected');
+  document.getElementById('sdrConnectBtn').textContent=t('sdrConnect');
+  document.getElementById('sdrConnectBtn').className='sdr-btn sdr-connect';
+  document.getElementById('sdrStatus').textContent=t('sdrDisconnected');
+  document.getElementById('sdrStats').style.display='none';
+  document.getElementById('sdrBadge').classList.remove('show');
+  document.getElementById('sdrCountries').innerHTML='';
+  if(sdrStatsTimer){clearInterval(sdrStatsTimer);sdrStatsTimer=null}
+  if(wasDemoSDR){demoMode=false;demoPlanes=[];fetchPlanes()}else{fetchPlanes()}
+}
+async function updateSdrStats(){
+  if(!sdrConnected||!sdrUrl)return;
+  try{
+    const resp=await fetch(sdrUrl+'/api/stats');
+    const s=await resp.json();
+    document.getElementById('sdrMsgCount').textContent=s.total_messages?.toLocaleString()||'0';
+    document.getElementById('sdrMsgRate').textContent=s.msg_per_second||'0';
+    document.getElementById('sdrTracked').textContent=s.airborne||'0';
+    document.getElementById('sdrRange').textContent=s.max_range_km?`${s.max_range_km}km`:'—';
+    const up=s.uptime_seconds||0;
+    document.getElementById('sdrUptime').textContent=up>3600?`${Math.floor(up/3600)}h ${Math.floor((up%3600)/60)}m`:up>60?`${Math.floor(up/60)}m ${up%60}s`:`${up}s`;
+    document.getElementById('sdrBadgeCount').textContent=` · ${s.airborne||0} planes`;
+    // Country breakdown
+    const ce=document.getElementById('sdrCountries');
+    if(s.top_countries&&s.top_countries.length){
+      ce.innerHTML=s.top_countries.map(([c,n])=>{
+        const flag=CUL[c]?.f||CFLAGS[c]||'🌍';
+        return `${flag} ${c}: <b style="color:var(--accent)">${n}</b>`;
+      }).join(' · ');
+    }else{ce.innerHTML=''}
+  }catch(e){}
+}
+
+// SDR demo: simulate receiving SDR data locally for testing the UI
+function testSdrDemo(){
+  sdrConnected=true;sdrUrl='__demo__';
+  document.getElementById('sdrBtn').classList.add('connected');
+  document.getElementById('sdrConnectBtn').textContent=t('sdrDisconnect');
+  document.getElementById('sdrConnectBtn').className='sdr-btn sdr-disconnect';
+  document.getElementById('sdrStatus').textContent=t('sdrDemoMode');
+  document.getElementById('sdrStats').style.display='block';
+  document.getElementById('sdrBadge').classList.add('show');
+  document.getElementById('sdrPanel').classList.remove('show');
+  // Override fetch for demo
+  demoMode=true;
+  demoPlanes=genDemoPlanes(12+Math.floor(Math.random()*10));
+  // Assign ICAO-derived countries
+  demoPlanes.forEach(p=>{
+    const c=icaoToCountry(p.icao);if(c)p.country=c;
+  });
+  planes=demoPlanes;updC();updS();showDemoBadge(false);
+  // Fake stats
+  let fakeUp=0,fakeMsgs=0;
+  if(sdrStatsTimer)clearInterval(sdrStatsTimer);
+  sdrStatsTimer=setInterval(()=>{
+    fakeUp+=3;fakeMsgs+=Math.floor(50+Math.random()*200);
+    document.getElementById('sdrMsgCount').textContent=fakeMsgs.toLocaleString();
+    document.getElementById('sdrMsgRate').textContent=(fakeMsgs/Math.max(1,fakeUp)).toFixed(1);
+    document.getElementById('sdrTracked').textContent=planes.length;
+    document.getElementById('sdrRange').textContent=`${(80+Math.random()*120).toFixed(0)}km`;
+    document.getElementById('sdrUptime').textContent=fakeUp>60?`${Math.floor(fakeUp/60)}m ${fakeUp%60}s`:`${fakeUp}s`;
+    document.getElementById('sdrBadgeCount').textContent=` · ${planes.length} planes`;
+    // Country stats
+    const cc={};planes.forEach(p=>{const c=p.country||'Unknown';cc[c]=(cc[c]||0)+1});
+    const top=Object.entries(cc).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    document.getElementById('sdrCountries').innerHTML=top.map(([c,n])=>{
+      const flag=CUL[c]?.f||CFLAGS[c]||'🌍';
+      return `${flag} ${c}: <b style="color:var(--accent)">${n}</b>`;
+    }).join(' · ');
+  },3000);
+}
+
+// ========== micro:bit Web Bluetooth Bridge ==========
+// BBC micro:bit UART service UUIDs
+const MB_UART_SVC='6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+const MB_UART_TX='6e400002-b5a3-f393-e0a9-e50e24dcca9e';// write to micro:bit
+const MB_UART_RX='6e400003-b5a3-f393-e0a9-e50e24dcca9e';// read from micro:bit
+
+let mbDevice=null,mbTxChar=null,mbConnected=false,mbSendTimer=null;
+
+async function toggleMicrobit(){
+  if(mbConnected){disconnectMicrobit();return}
+  const btn=document.getElementById('microbitBtn');
+  const st=document.getElementById('mbStatus');
+  const dot=document.getElementById('mbDot');
+  const txt=document.getElementById('mbText');
+
+  // Check Web Bluetooth support
+  if(!navigator.bluetooth){
+    txt.textContent='⚠️ Web Bluetooth not supported. Use Chrome/Edge.';
+    st.classList.add('show');setTimeout(()=>st.classList.remove('show'),4000);
+    return;
+  }
+
+  try{
+    txt.textContent='Searching...';st.classList.add('show');
+
+    // Request micro:bit device
+    mbDevice=await navigator.bluetooth.requestDevice({
+      filters:[{namePrefix:'BBC micro:bit'}],
+      optionalServices:[MB_UART_SVC]
+    });
+
+    txt.textContent='Connecting...';
+    mbDevice.addEventListener('gattserverdisconnected',onMbDisconnect);
+
+    const server=await mbDevice.gatt.connect();
+    const svc=await server.getPrimaryService(MB_UART_SVC);
+    mbTxChar=await svc.getCharacteristic(MB_UART_TX);
+
+    // Listen for data FROM micro:bit (e.g., REFRESH requests)
+    const rxChar=await svc.getCharacteristic(MB_UART_RX);
+    await rxChar.startNotifications();
+    rxChar.addEventListener('characteristicvaluechanged',onMbReceive);
+
+    mbConnected=true;
+    btn.classList.add('connected');btn.textContent='📡';
+    dot.classList.remove('off');dot.classList.add('on');
+    txt.textContent='✅ micro:bit connected!';
+    setTimeout(()=>st.classList.remove('show'),2500);
+
+    // Start sending plane data every 5 seconds
+    sendMbUpdate();
+    mbSendTimer=setInterval(sendMbUpdate,5000);
+
+  }catch(err){
+    console.warn('micro:bit connection failed:',err);
+    if(err.name==='NotFoundError'){
+      txt.textContent='No micro:bit found. Make sure it\'s powered on.';
+    }else{
+      txt.textContent='Connection failed: '+err.message;
+    }
+    setTimeout(()=>st.classList.remove('show'),4000);
+  }
+}
+
+function disconnectMicrobit(){
+  if(mbSendTimer){clearInterval(mbSendTimer);mbSendTimer=null}
+  if(mbDevice&&mbDevice.gatt.connected){mbDevice.gatt.disconnect()}
+  mbConnected=false;mbTxChar=null;
+  const btn=document.getElementById('microbitBtn');
+  btn.classList.remove('connected');btn.textContent='🔌';
+  const dot=document.getElementById('mbDot');
+  dot.classList.remove('on');dot.classList.add('off');
+  const txt=document.getElementById('mbText');
+  txt.textContent='Disconnected';
+  document.getElementById('mbStatus').classList.add('show');
+  setTimeout(()=>document.getElementById('mbStatus').classList.remove('show'),2000);
+}
+
+function onMbDisconnect(){
+  mbConnected=false;mbTxChar=null;
+  if(mbSendTimer){clearInterval(mbSendTimer);mbSendTimer=null}
+  const btn=document.getElementById('microbitBtn');
+  btn.classList.remove('connected');btn.textContent='🔌';
+  document.getElementById('mbDot').classList.remove('on');
+  document.getElementById('mbDot').classList.add('off');
+}
+
+function onMbReceive(e){
+  const val=new TextDecoder().decode(e.target.value).trim();
+  if(val==='REFRESH')fetchPlanes();
+}
+
+async function sendMbUpdate(){
+  if(!mbConnected||!mbTxChar||!planes.length)return;
+  try{
+    // Build compact message: U|count|cs,dist,bearing,alt,country|...
+    // Limit to nearest 10 planes to stay within BLE packet limits
+    const sorted=[...planes].map(p=>{
+      const d=distKm(userLat,userLon,p.lat,p.lon);
+      const b=bearing(userLat,userLon,p.lat,p.lon);
+      return{...p,_d:d,_b:b};
+    }).sort((a,b)=>a._d-b._d).slice(0,10);
+
+    let msg=`U|${planes.length}`;
+    sorted.forEach(p=>{
+      const cs=(p.callsign||'').trim().substring(0,7)||p.icao.substring(0,6);
+      const cc=getCountryCode(p.country||'');
+      msg+=`|${cs},${p._d.toFixed(1)},${Math.round(p._b)},${Math.round(p.alt||0)},${cc}`;
+    });
+    msg+='\n';
+
+    // BLE UART has 20-byte MTU limit, so chunk the message
+    const encoder=new TextEncoder();
+    const data=encoder.encode(msg);
+    const chunkSize=20;
+    for(let i=0;i<data.length;i+=chunkSize){
+      const chunk=data.slice(i,i+chunkSize);
+      await mbTxChar.writeValue(chunk);
+    }
+
+    // Send proximity alert if nearest <8km
+    if(sorted[0]&&sorted[0]._d<8){
+      const p=sorted[0];
+      const cs=(p.callsign||'').trim().substring(0,7)||'???';
+      const cc=getCountryCode(p.country||'');
+      const alert=`A|${cs}|${p._d.toFixed(1)}|${Math.round(p.alt||0)}|${cc}\n`;
+      const alertData=encoder.encode(alert);
+      for(let i=0;i<alertData.length;i+=chunkSize){
+        await mbTxChar.writeValue(alertData.slice(i,i+chunkSize));
+      }
+    }
+  }catch(err){
+    console.warn('micro:bit send error:',err);
+  }
+}
+
+// Country name → 2-letter code lookup
+function getCountryCode(name){
+  const CC={'France':'FR','United Kingdom':'GB','United States':'US','Germany':'DE',
+    'Turkey':'TR','United Arab Emirates':'AE','Japan':'JP','Morocco':'MA',
+    'Saudi Arabia':'SA','Qatar':'QA','Egypt':'EG','Italy':'IT','Spain':'ES',
+    'Netherlands':'NL','China':'CN','India':'IN','Brazil':'BR','Australia':'AU',
+    'Canada':'CA','Russia':'RU','South Korea':'KR','Thailand':'TH','Singapore':'SG',
+    'Ireland':'IE','Switzerland':'CH','Portugal':'PT','Greece':'GR','Poland':'PL',
+    'Sweden':'SE','Norway':'NO','Mexico':'MX','Argentina':'AR','Ethiopia':'ET',
+    'Kenya':'KE','South Africa':'ZA','Lebanon':'LB','Indonesia':'ID','Malaysia':'MY',
+    'Philippines':'PH','Vietnam':'VN','Israel':'IL','Finland':'FI','Austria':'AT',
+    'Belgium':'BE','Colombia':'CO','Pakistan':'PK','Nigeria':'NG','New Zealand':'NZ',
+    'Iceland':'IS','Peru':'PE'};
+  return CC[name]||name?.substring(0,2)?.toUpperCase()||'??';
+}
+
+// ========== Shape Selector ==========
+function toggleShapePicker(){
+  const p=document.getElementById('shapePicker'),b=document.getElementById('shapeBtn');
+  const show=!p.classList.contains('show');p.classList.toggle('show',show);b.classList.toggle('active',show);
+}
+function setShape(s){
+  planeShape=s;sfxMode();
+  document.querySelectorAll('.shape-opt').forEach(el=>el.classList.toggle('active',el.dataset.shape===s));
+  document.getElementById('shapePicker').classList.remove('show');
+  document.getElementById('shapeBtn').classList.remove('active');
+}
+
+// ========== Aircraft Shape Renderers ==========
+// Each takes (X, sz, ar, baseCol, highlightCol, isNight, time, idx, filterAlpha)
+
+function drawShapeJet(X,sz,ar,bc,hc,night,t,i,fa){
+  // Shadow
+  if(!night){X.fillStyle=`rgba(0,0,0,${0.04+ar*0.03})`;X.beginPath();X.ellipse(sz*0.02,sz*0.03,sz*.42,sz*.08,0,0,6.28);X.fill()}
+  // Fuselage
+  const fg=X.createLinearGradient(-sz*.08,0,sz*.08,0);fg.addColorStop(0,bc);fg.addColorStop(0.4,hc);fg.addColorStop(1,bc);X.fillStyle=fg;
+  X.beginPath();X.moveTo(0,-sz*.5);X.quadraticCurveTo(sz*.06,-sz*.42,sz*.08,-sz*.3);X.lineTo(sz*.09,sz*.28);X.quadraticCurveTo(sz*.08,sz*.38,0,sz*.44);X.quadraticCurveTo(-sz*.08,sz*.38,-sz*.09,sz*.28);X.lineTo(-sz*.08,-sz*.3);X.quadraticCurveTo(-sz*.06,-sz*.42,0,-sz*.5);X.closePath();X.fill();
+  // Highlight
+  X.strokeStyle=hc;X.lineWidth=sz*.02;X.globalAlpha*=0.6;X.beginPath();X.moveTo(0,-sz*.46);X.lineTo(0,sz*.36);X.stroke();X.globalAlpha=fa;
+  // Wings
+  const wg=X.createLinearGradient(0,-sz*.06,0,sz*.06);wg.addColorStop(0,hc);wg.addColorStop(0.5,bc);wg.addColorStop(1,bc);X.fillStyle=wg;
+  X.beginPath();X.moveTo(sz*.08,-sz*.04);X.lineTo(sz*.58,sz*.08);X.quadraticCurveTo(sz*.62,sz*.1,sz*.56,sz*.12);X.lineTo(sz*.12,sz*.08);X.lineTo(-sz*.12,sz*.08);X.lineTo(-sz*.56,sz*.12);X.quadraticCurveTo(-sz*.62,sz*.1,-sz*.58,sz*.08);X.lineTo(-sz*.08,-sz*.04);X.closePath();X.fill();
+  // Engines
+  X.fillStyle=bc;X.beginPath();X.ellipse(sz*.22,sz*.04,sz*.03,sz*.07,0,0,6.28);X.fill();X.beginPath();X.ellipse(-sz*.22,sz*.04,sz*.03,sz*.07,0,0,6.28);X.fill();
+  X.fillStyle=night?'rgba(255,140,60,0.15)':'rgba(200,200,200,0.2)';X.beginPath();X.ellipse(sz*.22,-sz*.02,sz*.02,sz*.015,0,0,6.28);X.fill();X.beginPath();X.ellipse(-sz*.22,-sz*.02,sz*.02,sz*.015,0,0,6.28);X.fill();
+  // Tail
+  X.fillStyle=bc;X.beginPath();X.moveTo(sz*.06,sz*.32);X.lineTo(sz*.22,sz*.38);X.quadraticCurveTo(sz*.24,sz*.39,sz*.2,sz*.4);X.lineTo(sz*.06,sz*.36);X.lineTo(-sz*.06,sz*.36);X.lineTo(-sz*.2,sz*.4);X.quadraticCurveTo(-sz*.24,sz*.39,-sz*.22,sz*.38);X.lineTo(-sz*.06,sz*.32);X.closePath();X.fill();
+  const vfg=X.createLinearGradient(-sz*.01,0,sz*.04,0);vfg.addColorStop(0,bc);vfg.addColorStop(1,hc);X.fillStyle=vfg;X.beginPath();X.moveTo(0,sz*.24);X.lineTo(sz*.03,sz*.26);X.lineTo(sz*.04,sz*.15);X.quadraticCurveTo(sz*.03,sz*.12,0,sz*.14);X.closePath();X.fill();
+  // Windows
+  if(sz>18){X.fillStyle=night?'rgba(255,220,120,0.5)':'rgba(255,255,255,0.4)';const wC=Math.min(8,Math.floor(sz/5));for(let w=0;w<wC;w++){X.beginPath();X.arc(sz*.05,-sz*.28+w*(sz*.5/wC),sz*.012,0,6.28);X.fill()}}
+}
+
+function drawShapeFighter(X,sz,ar,bc,hc,night,t,i,fa){
+  if(!night){X.fillStyle=`rgba(0,0,0,${0.03+ar*0.02})`;X.beginPath();X.ellipse(sz*.01,sz*.02,sz*.35,sz*.06,0,0,6.28);X.fill()}
+  // Sleek fuselage
+  X.fillStyle=bc;X.beginPath();X.moveTo(0,-sz*.55);X.lineTo(sz*.05,-sz*.35);X.lineTo(sz*.07,sz*.2);X.quadraticCurveTo(sz*.05,sz*.4,0,sz*.45);X.quadraticCurveTo(-sz*.05,sz*.4,-sz*.07,sz*.2);X.lineTo(-sz*.05,-sz*.35);X.closePath();X.fill();
+  // Delta wings
+  X.fillStyle=hc;X.beginPath();X.moveTo(sz*.06,-sz*.05);X.lineTo(sz*.52,sz*.25);X.lineTo(sz*.48,sz*.3);X.lineTo(sz*.08,sz*.15);X.lineTo(-sz*.08,sz*.15);X.lineTo(-sz*.48,sz*.3);X.lineTo(-sz*.52,sz*.25);X.lineTo(-sz*.06,-sz*.05);X.closePath();X.fill();
+  // Canards (small front wings)
+  X.fillStyle=bc;X.beginPath();X.moveTo(sz*.04,-sz*.28);X.lineTo(sz*.22,-sz*.22);X.lineTo(sz*.18,-sz*.18);X.lineTo(sz*.04,-sz*.22);X.closePath();X.fill();
+  X.beginPath();X.moveTo(-sz*.04,-sz*.28);X.lineTo(-sz*.22,-sz*.22);X.lineTo(-sz*.18,-sz*.18);X.lineTo(-sz*.04,-sz*.22);X.closePath();X.fill();
+  // Twin tail fins
+  X.fillStyle=bc;X.beginPath();X.moveTo(sz*.06,sz*.2);X.lineTo(sz*.12,sz*.1);X.lineTo(sz*.1,sz*.3);X.closePath();X.fill();
+  X.beginPath();X.moveTo(-sz*.06,sz*.2);X.lineTo(-sz*.12,sz*.1);X.lineTo(-sz*.1,sz*.3);X.closePath();X.fill();
+  // Cockpit
+  X.fillStyle=night?'rgba(255,200,80,0.4)':'rgba(140,200,255,0.5)';X.beginPath();X.ellipse(0,-sz*.32,sz*.03,sz*.06,0,0,6.28);X.fill();
+  // Afterburner
+  if(night){const glow=0.3+0.3*Math.sin(t*12+i*4);X.fillStyle=`rgba(255,140,40,${glow})`;X.beginPath();X.ellipse(0,sz*.48,sz*.03,sz*.06+glow*sz*.04,0,0,6.28);X.fill()}
+}
+
+function drawShapeProp(X,sz,ar,bc,hc,night,t,i,fa){
+  if(!night){X.fillStyle=`rgba(0,0,0,${0.03+ar*0.02})`;X.beginPath();X.ellipse(sz*.01,sz*.02,sz*.35,sz*.07,0,0,6.28);X.fill()}
+  // Round fuselage
+  X.fillStyle=bc;X.beginPath();X.moveTo(0,-sz*.42);X.quadraticCurveTo(sz*.08,-sz*.3,sz*.1,-sz*.1);X.lineTo(sz*.09,sz*.3);X.quadraticCurveTo(sz*.06,sz*.42,0,sz*.44);X.quadraticCurveTo(-sz*.06,sz*.42,-sz*.09,sz*.3);X.lineTo(-sz*.1,-sz*.1);X.quadraticCurveTo(-sz*.08,-sz*.3,0,-sz*.42);X.closePath();X.fill();
+  // Straight wings (not swept)
+  X.fillStyle=hc;X.beginPath();X.moveTo(sz*.09,-sz*.02);X.lineTo(sz*.55,-sz*.04);X.quadraticCurveTo(sz*.58,-sz*.02,sz*.55,sz*.02);X.lineTo(sz*.09,sz*.04);X.lineTo(-sz*.09,sz*.04);X.lineTo(-sz*.55,sz*.02);X.quadraticCurveTo(-sz*.58,-sz*.02,-sz*.55,-sz*.04);X.lineTo(-sz*.09,-sz*.02);X.closePath();X.fill();
+  // Tail
+  X.fillStyle=bc;X.beginPath();X.moveTo(sz*.05,sz*.32);X.lineTo(sz*.2,sz*.36);X.lineTo(sz*.18,sz*.4);X.lineTo(sz*.05,sz*.38);X.lineTo(-sz*.05,sz*.38);X.lineTo(-sz*.18,sz*.4);X.lineTo(-sz*.2,sz*.36);X.lineTo(-sz*.05,sz*.32);X.closePath();X.fill();
+  // Tail fin
+  X.beginPath();X.moveTo(0,sz*.26);X.lineTo(sz*.03,sz*.28);X.lineTo(sz*.035,sz*.16);X.lineTo(0,sz*.18);X.closePath();X.fill();
+  // Propeller disc
+  const pAngle=t*18+i*5;
+  X.globalAlpha*=0.4;X.strokeStyle=night?'rgba(200,220,240,0.8)':'rgba(60,80,100,0.6)';X.lineWidth=sz*.02;
+  X.beginPath();X.arc(0,-sz*.44,sz*.12,0,6.28);X.stroke();
+  // Propeller blades
+  X.strokeStyle=bc;X.lineWidth=sz*.025;
+  for(let b=0;b<3;b++){const ba=pAngle+b*2.09;X.beginPath();X.moveTo(0,-sz*.44);X.lineTo(Math.cos(ba)*sz*.14,-sz*.44+Math.sin(ba)*sz*.14);X.stroke()}
+  X.globalAlpha=fa;
+}
+
+function drawShapeHeli(X,sz,ar,bc,hc,night,t,i,fa){
+  if(!night){X.fillStyle=`rgba(0,0,0,${0.03+ar*0.02})`;X.beginPath();X.ellipse(sz*.01,sz*.02,sz*.3,sz*.06,0,0,6.28);X.fill()}
+  // Body (rounded, bulbous)
+  X.fillStyle=bc;X.beginPath();X.moveTo(0,-sz*.25);X.quadraticCurveTo(sz*.12,-sz*.2,sz*.14,-sz*.05);X.quadraticCurveTo(sz*.13,sz*.1,sz*.08,sz*.15);X.lineTo(sz*.03,sz*.35);X.lineTo(-sz*.03,sz*.35);X.lineTo(-sz*.08,sz*.15);X.quadraticCurveTo(-sz*.13,sz*.1,-sz*.14,-sz*.05);X.quadraticCurveTo(-sz*.12,-sz*.2,0,-sz*.25);X.closePath();X.fill();
+  // Cockpit bubble
+  X.fillStyle=night?'rgba(255,200,80,0.35)':'rgba(120,200,255,0.45)';X.beginPath();X.ellipse(0,-sz*.18,sz*.08,sz*.08,0,0,Math.PI);X.fill();
+  // Tail boom
+  X.fillStyle=bc;X.fillRect(-sz*.015,sz*.15,sz*.03,sz*.28);
+  // Tail rotor
+  const trA=t*25+i*7;
+  X.strokeStyle=hc;X.lineWidth=sz*.015;X.beginPath();X.arc(0,sz*.42,sz*.06,0,6.28);X.stroke();
+  for(let b=0;b<2;b++){const ba=trA+b*Math.PI;X.beginPath();X.moveTo(0,sz*.42);X.lineTo(Math.cos(ba)*sz*.08,sz*.42+Math.sin(ba)*sz*.08);X.stroke()}
+  // Main rotor
+  const rA=t*20+i*3;
+  X.globalAlpha*=0.35;X.strokeStyle=night?'rgba(200,220,240,0.7)':'rgba(60,80,100,0.5)';X.lineWidth=sz*.02;
+  X.beginPath();X.arc(0,-sz*.08,sz*.45,0,6.28);X.stroke();
+  X.strokeStyle=bc;X.lineWidth=sz*.03;
+  for(let b=0;b<4;b++){const ba=rA+b*Math.PI/2;X.beginPath();X.moveTo(0,-sz*.08);X.lineTo(Math.cos(ba)*sz*.48,-sz*.08+Math.sin(ba)*sz*.48);X.stroke()}
+  X.globalAlpha=fa;
+  // Skids
+  X.strokeStyle=bc;X.lineWidth=sz*.015;
+  X.beginPath();X.moveTo(-sz*.1,sz*.15);X.lineTo(-sz*.1,sz*.2);X.lineTo(-sz*.14,sz*.2);X.stroke();
+  X.beginPath();X.moveTo(sz*.1,sz*.15);X.lineTo(sz*.1,sz*.2);X.lineTo(sz*.14,sz*.2);X.stroke();
+}
+
+function drawShapePaper(X,sz,ar,bc,hc,night,t,i,fa){
+  // Paper airplane - clean folded look
+  X.fillStyle=night?'rgba(220,230,245,0.85)':'rgba(245,248,255,0.9)';
+  X.beginPath();X.moveTo(0,-sz*.5);X.lineTo(sz*.4,sz*.35);X.lineTo(0,sz*.2);X.closePath();X.fill();
+  X.fillStyle=night?'rgba(190,205,230,0.75)':'rgba(220,228,240,0.8)';
+  X.beginPath();X.moveTo(0,-sz*.5);X.lineTo(-sz*.4,sz*.35);X.lineTo(0,sz*.2);X.closePath();X.fill();
+  // Fold line
+  X.strokeStyle=night?'rgba(160,180,210,0.4)':'rgba(180,195,215,0.5)';X.lineWidth=sz*.015;
+  X.beginPath();X.moveTo(0,-sz*.5);X.lineTo(0,sz*.35);X.stroke();
+  // Subtle shadow on fold
+  X.fillStyle='rgba(0,0,0,0.05)';X.beginPath();X.moveTo(0,-sz*.5);X.lineTo(sz*.08,sz*.2);X.lineTo(0,sz*.2);X.closePath();X.fill();
+}
+
+function drawShapeRocket(X,sz,ar,bc,hc,night,t,i,fa){
+  // Nose cone
+  X.fillStyle=hc;X.beginPath();X.moveTo(0,-sz*.55);X.quadraticCurveTo(sz*.08,-sz*.4,sz*.09,-sz*.25);X.lineTo(-sz*.09,-sz*.25);X.quadraticCurveTo(-sz*.08,-sz*.4,0,-sz*.55);X.closePath();X.fill();
+  // Body
+  const rg=X.createLinearGradient(-sz*.1,0,sz*.1,0);rg.addColorStop(0,bc);rg.addColorStop(0.35,hc);rg.addColorStop(1,bc);X.fillStyle=rg;
+  X.fillRect(-sz*.09,-sz*.25,sz*.18,sz*.55);
+  // Stripe
+  X.fillStyle=night?'rgba(255,80,80,0.5)':'rgba(220,50,50,0.6)';X.fillRect(-sz*.09,sz*.05,sz*.18,sz*.06);
+  // Fins
+  X.fillStyle=night?'rgba(255,80,80,0.4)':'rgba(200,50,50,0.5)';
+  X.beginPath();X.moveTo(sz*.09,sz*.15);X.lineTo(sz*.22,sz*.35);X.lineTo(sz*.09,sz*.3);X.closePath();X.fill();
+  X.beginPath();X.moveTo(-sz*.09,sz*.15);X.lineTo(-sz*.22,sz*.35);X.lineTo(-sz*.09,sz*.3);X.closePath();X.fill();
+  X.beginPath();X.moveTo(0,sz*.3);X.lineTo(0,sz*.38);X.lineTo(sz*.03,sz*.3);X.closePath();X.fill();
+  // Window
+  X.fillStyle=night?'rgba(150,200,255,0.5)':'rgba(100,180,255,0.6)';X.beginPath();X.arc(0,-sz*.15,sz*.04,0,6.28);X.fill();
+  // Flame
+  const fInt=0.5+0.5*Math.sin(t*15+i*5);
+  X.fillStyle=`rgba(255,${Math.round(120+80*fInt)},30,${0.4+fInt*0.4})`;X.beginPath();X.moveTo(-sz*.06,sz*.3);X.quadraticCurveTo(0,sz*.3+sz*.15+fInt*sz*.1,sz*.06,sz*.3);X.closePath();X.fill();
+  X.fillStyle=`rgba(255,255,100,${0.3+fInt*0.3})`;X.beginPath();X.moveTo(-sz*.03,sz*.3);X.quadraticCurveTo(0,sz*.3+sz*.08+fInt*sz*.05,sz*.03,sz*.3);X.closePath();X.fill();
+}
+
+function drawShapeBird(X,sz,ar,bc,hc,night,t,i,fa){
+  const wingFlap=Math.sin(t*6+i*2.5)*0.3;// wing flapping
+  // Body
+  X.fillStyle=bc;X.beginPath();X.moveTo(0,-sz*.35);X.quadraticCurveTo(sz*.06,-sz*.2,sz*.07,sz*.05);X.quadraticCurveTo(sz*.04,sz*.25,0,sz*.3);X.quadraticCurveTo(-sz*.04,sz*.25,-sz*.07,sz*.05);X.quadraticCurveTo(-sz*.06,-sz*.2,0,-sz*.35);X.closePath();X.fill();
+  // Beak
+  X.fillStyle=night?'rgba(255,180,60,0.7)':'rgba(230,160,40,0.8)';X.beginPath();X.moveTo(0,-sz*.35);X.lineTo(sz*.02,-sz*.42);X.lineTo(-sz*.02,-sz*.42);X.closePath();X.fill();
+  // Wings (animated flapping)
+  X.fillStyle=hc;
+  X.save();X.rotate(wingFlap*0.2);
+  X.beginPath();X.moveTo(sz*.06,0);X.quadraticCurveTo(sz*.35,-sz*.15-wingFlap*sz*.2,sz*.5,-sz*.05-wingFlap*sz*.25);X.quadraticCurveTo(sz*.4,sz*.05,sz*.08,sz*.05);X.closePath();X.fill();
+  X.restore();
+  X.save();X.rotate(-wingFlap*0.2);
+  X.beginPath();X.moveTo(-sz*.06,0);X.quadraticCurveTo(-sz*.35,-sz*.15-wingFlap*sz*.2,-sz*.5,-sz*.05-wingFlap*sz*.25);X.quadraticCurveTo(-sz*.4,sz*.05,-sz*.08,sz*.05);X.closePath();X.fill();
+  X.restore();
+  // Tail feathers
+  X.fillStyle=bc;X.beginPath();X.moveTo(0,sz*.25);X.lineTo(sz*.08,sz*.4);X.lineTo(0,sz*.35);X.lineTo(-sz*.08,sz*.4);X.closePath();X.fill();
+  // Eye
+  X.fillStyle='rgba(255,255,255,0.8)';X.beginPath();X.arc(sz*.02,-sz*.28,sz*.015,0,6.28);X.fill();
+  X.fillStyle='rgba(0,0,0,0.7)';X.beginPath();X.arc(sz*.02,-sz*.28,sz*.008,0,6.28);X.fill();
+}
+
+function drawShapeUfo(X,sz,ar,bc,hc,night,t,i,fa){
+  const wobble=Math.sin(t*3+i*2)*0.05;
+  X.save();X.rotate(wobble);
+  // Saucer body
+  const ug=X.createRadialGradient(0,0,sz*.05,0,0,sz*.45);ug.addColorStop(0,hc);ug.addColorStop(0.6,bc);ug.addColorStop(1,'rgba(60,60,80,0.3)');X.fillStyle=ug;
+  X.beginPath();X.ellipse(0,sz*.02,sz*.45,sz*.12,0,0,6.28);X.fill();
+  // Dome
+  X.fillStyle=night?'rgba(150,200,255,0.3)':'rgba(120,200,255,0.4)';X.beginPath();X.ellipse(0,-sz*.04,sz*.15,sz*.15,0,Math.PI,0);X.fill();
+  // Rim lights
+  const numLights=8;for(let l=0;l<numLights;l++){const la=l*Math.PI*2/numLights+t*2;const lx=Math.cos(la)*sz*.38,ly=Math.sin(la)*sz*.08+sz*.02;const bright=Math.sin(t*8+l*1.2)*.5+.5;X.fillStyle=`rgba(${l%2?'100,255,200':'255,200,100'},${0.3+bright*0.6})`;X.beginPath();X.arc(lx,ly,sz*.02,0,6.28);X.fill()}
+  // Tractor beam (occasionally)
+  if(Math.sin(t*0.5+i)>0.7){X.globalAlpha*=0.08;X.fillStyle='rgba(100,255,200,1)';X.beginPath();X.moveTo(-sz*.15,sz*.12);X.lineTo(sz*.15,sz*.12);X.lineTo(sz*.3,sz*.5);X.lineTo(-sz*.3,sz*.5);X.closePath();X.fill();X.globalAlpha=fa}
+  X.restore();
+}
+
+function drawShapeStar(X,sz,ar,bc,hc,night,t,i,fa){
+  const spin=t*0.8+i*1.5;
+  const pulse=1+Math.sin(t*3+i*2)*0.08;
+  X.save();X.rotate(spin);X.scale(pulse,pulse);
+  // Star shape
+  const sg=X.createRadialGradient(0,0,sz*.05,0,0,sz*.4);sg.addColorStop(0,hc);sg.addColorStop(1,bc);X.fillStyle=sg;
+  X.beginPath();
+  for(let p=0;p<5;p++){const aO=p*Math.PI*2/5-Math.PI/2;const aI=aO+Math.PI/5;X.lineTo(Math.cos(aO)*sz*.4,Math.sin(aO)*sz*.4);X.lineTo(Math.cos(aI)*sz*.18,Math.sin(aI)*sz*.18)}
+  X.closePath();X.fill();
+  // Inner glow
+  X.fillStyle=night?'rgba(255,230,150,0.4)':'rgba(255,255,200,0.3)';X.beginPath();X.arc(0,0,sz*.12,0,6.28);X.fill();
+  // Sparkle
+  if(Math.sin(t*6+i*3)>0.5){X.strokeStyle='rgba(255,255,255,0.4)';X.lineWidth=sz*.01;const sp=sz*.45;X.beginPath();X.moveTo(0,-sp);X.lineTo(0,sp);X.moveTo(-sp,0);X.lineTo(sp,0);X.stroke()}
+  X.restore();
+}
+
+// Nav lights helper (shared by jet/fighter/prop)
+function drawNavLights(X,sz,t,i,night,fa,wingSpan){
+  if(!night)return;
+  if(Math.sin(t*4+i*2)>.3){
+    X.fillStyle='rgba(255,40,40,0.9)';X.beginPath();X.arc(-wingSpan,sz*.1,1.8,0,6.28);X.fill();X.shadowColor='rgba(255,40,40,0.5)';X.shadowBlur=4;X.fill();X.shadowBlur=0;
+    X.fillStyle='rgba(40,255,40,0.9)';X.beginPath();X.arc(wingSpan,sz*.1,1.8,0,6.28);X.fill();X.shadowColor='rgba(40,255,40,0.5)';X.shadowBlur=4;X.fill();X.shadowBlur=0;
+    if(Math.sin(t*8+i*3)>.6){X.fillStyle='rgba(255,255,255,0.9)';X.beginPath();X.arc(0,sz*.44,1.2,0,6.28);X.fill();X.shadowColor='rgba(255,255,255,0.4)';X.shadowBlur=6;X.fill();X.shadowBlur=0}
+  }
+}
+
+function drawPlanes(){
+  planes.forEach((p,idx)=>{
+    const s=toScr(p.lat,p.lon,p.alt);
+    if(s.x<-60||s.x>W+60||s.y<-60||s.y>H+60)return;
+    p._sx=s.x;p._sy=s.y;p._size=s.sz;
+    const hdg=(p.hdg||0)*Math.PI/180,isSel=selectedPlane?.icao===p.icao;
+    const isMatch=planeMatchesFilter(p),hasFilter=!!filterCountry;
+    const filterAlpha=hasFilter?(isMatch?1:0.12):1;
+
+    X.globalAlpha=filterAlpha;
+    if(p.trail?.length>1){
+      const altR=Math.min(1,(p.alt||0)/12000);
+      const tr=Math.round(52+203*altR),tg=Math.round(211-131*altR),tb=Math.round(153+102*altR);
+      // Fading trail segments
+      const tLen=p.trail.length;
+      for(let ti=1;ti<tLen;ti++){
+        const ts0=toScr(p.trail[ti-1].lat,p.trail[ti-1].lon,p.alt);
+        const ts1=toScr(p.trail[ti].lat,p.trail[ti].lon,p.alt);
+        const fade=ti/tLen;// 0=oldest, 1=newest
+        const tAlpha=(hasFilter&&!isMatch?0.02:0.06)+fade*(hasFilter&&!isMatch?0.02:0.16);
+        X.strokeStyle=`rgba(${tr},${tg},${tb},${tAlpha})`;
+        X.lineWidth=s.sz*.04+fade*s.sz*.06;X.lineCap='round';
+        X.beginPath();X.moveTo(ts0.x,ts0.y);X.lineTo(ts1.x,ts1.y);X.stroke();
+      }
+      // Contrail glow for high-altitude planes
+      if(p.alt>8000&&!isNight){
+        X.globalAlpha=filterAlpha*0.08;
+        X.strokeStyle='#fff';X.lineWidth=s.sz*.15;X.lineCap='round';
+        X.beginPath();
+        p.trail.slice(-5).forEach((t,i)=>{const ts=toScr(t.lat,t.lon,p.alt);i===0?X.moveTo(ts.x,ts.y):X.lineTo(ts.x,ts.y)});
+        X.stroke();X.globalAlpha=filterAlpha;
+      }
+    }
+    if(isSel){X.fillStyle=mode==='heritage'?'rgba(212,168,83,0.1)':'rgba(251,191,36,0.1)';X.beginPath();X.arc(s.x,s.y,s.sz*1.8,0,6.28);X.fill()}
+    // Glow ring for filtered matches
+    if(hasFilter&&isMatch&&!isSel){X.fillStyle='rgba(251,191,36,0.06)';X.beginPath();X.arc(s.x,s.y,s.sz*1.5,0,6.28);X.fill()}
+
+    X.save();X.translate(s.x,s.y);X.rotate(hdg);
+    const sz=s.sz,ar=Math.min(1,(p.alt||0)/13000);
+    const baseCol=mode==='heritage'?
+      `rgba(${180+50*ar},${160+40*(1-ar)},${100+20*ar},0.85)`:
+      (isNight?`rgba(${180+75*ar},${200+55*(1-ar)},${230+25*ar},0.9)`:`rgba(${54+50*ar},${80+40*(1-ar)},${120+30*ar},0.85)`);
+    const highlightCol=mode==='heritage'?
+      `rgba(${220+35*ar},${200+40*(1-ar)},${140+20*ar},0.4)`:
+      (isNight?`rgba(${220+35*ar},${240+15*(1-ar)},255,0.35)`:`rgba(${120+60*ar},${160+40*(1-ar)},${200+30*ar},0.4)`);
+
+    // Draw selected shape
+    switch(planeShape){
+      case 'fighter':drawShapeFighter(X,sz,ar,baseCol,highlightCol,isNight,time,idx,filterAlpha);drawNavLights(X,sz,time,idx,isNight,filterAlpha,sz*.5);break;
+      case 'prop':drawShapeProp(X,sz,ar,baseCol,highlightCol,isNight,time,idx,filterAlpha);drawNavLights(X,sz,time,idx,isNight,filterAlpha,sz*.5);break;
+      case 'heli':drawShapeHeli(X,sz,ar,baseCol,highlightCol,isNight,time,idx,filterAlpha);break;
+      case 'paper':drawShapePaper(X,sz,ar,baseCol,highlightCol,isNight,time,idx,filterAlpha);break;
+      case 'rocket':drawShapeRocket(X,sz,ar,baseCol,highlightCol,isNight,time,idx,filterAlpha);break;
+      case 'bird':drawShapeBird(X,sz,ar,baseCol,highlightCol,isNight,time,idx,filterAlpha);break;
+      case 'ufo':drawShapeUfo(X,sz,ar,baseCol,highlightCol,isNight,time,idx,filterAlpha);break;
+      case 'star':drawShapeStar(X,sz,ar,baseCol,highlightCol,isNight,time,idx,filterAlpha);break;
+      default:drawShapeJet(X,sz,ar,baseCol,highlightCol,isNight,time,idx,filterAlpha);drawNavLights(X,sz,time,idx,isNight,filterAlpha,sz*.55);
+        if(!isNight&&ar>0.4){X.globalAlpha*=0.15;X.fillStyle='#fff';X.beginPath();X.ellipse(0,0,sz*.06,sz*.3,0,0,6.28);X.fill();X.globalAlpha=filterAlpha}
+        break;
+    }
+    X.restore();
+
+    // Flag badge for filtered matches
+    if(hasFilter&&isMatch&&filterFlag){X.font='10px serif';X.textAlign='center';X.fillText(filterFlag,s.x,s.y-s.sz*.6)}
+
+    if(mode!=='sky'){const cs=(p.callsign||'').trim();if(cs){X.font=`600 ${Math.max(8,sz*.3)}px var(--fm)`;X.fillStyle=isSel?'rgba(251,191,36,0.9)':(hasFilter&&isMatch?'rgba(251,191,36,0.7)':'rgba(255,255,255,0.5)');X.textAlign='left';X.fillText(cs,s.x+sz*.6,s.y-sz*.1);
+    if(mode==='pro'||mode==='expert'){X.font=`400 ${Math.max(7,sz*.22)}px var(--fm)`;X.fillStyle=mode==='expert'?'rgba(192,132,252,0.4)':'rgba(246,173,85,0.4)';X.fillText(p.alt?toFL(p.alt):'—',s.x+sz*.6,s.y+sz*.18)}}}
+    X.globalAlpha=1;
+  });
+  // Draw waypoints in expert mode
+  if(mode==='expert'){WAYPOINTS.forEach(wp=>{const ws=toScr(wp.lat,wp.lon,0);if(ws.x<0||ws.x>W||ws.y<0||ws.y>H)return;X.fillStyle='rgba(192,132,252,0.2)';X.beginPath();X.arc(ws.x,ws.y,3,0,6.28);X.fill();X.font='500 7px var(--fm)';X.fillStyle='rgba(192,132,252,0.3)';X.textAlign='center';X.fillText(wp.id,ws.x,ws.y-6)})}
+}
+
+function drawRadar(){
+  const rc=document.getElementById('radarCanvas'),rx=rc.getContext('2d');
+  rx.setTransform(dpr,0,0,dpr,0,0);rx.clearRect(0,0,W,H);
+  rx.fillStyle='rgba(0,8,16,0.92)';rx.fillRect(0,0,W,H);
+  const cx=W/2,cy=H/2,mr=Math.min(W,H)*.43;
+  // Range rings with labels
+  const ranges=[50,100,150,200];
+  for(let i=1;i<=4;i++){
+    rx.strokeStyle=`rgba(0,255,100,${.04+i*.015})`;rx.lineWidth=.5;rx.beginPath();rx.arc(cx,cy,mr*i/4,0,6.28);rx.stroke();
+    rx.font='500 7px var(--fm)';rx.fillStyle='rgba(0,255,100,0.12)';rx.textAlign='center';
+    rx.fillText(`${ranges[i-1]}km`,cx,cy-mr*i/4-4);
+  }
+  // Crosshairs
+  rx.strokeStyle='rgba(0,255,100,0.04)';rx.lineWidth=.5;
+  rx.beginPath();rx.moveTo(cx-mr,cy);rx.lineTo(cx+mr,cy);rx.moveTo(cx,cy-mr);rx.lineTo(cx,cy+mr);rx.stroke();
+  // Sweep line with afterglow
+  radarAngle+=.02;
+  for(let g=0;g<12;g++){
+    const ga=radarAngle-g*.04;
+    const alpha=0.12*(1-g/12);
+    rx.strokeStyle=`rgba(0,255,100,${alpha})`;rx.lineWidth=1-g*.06;
+    rx.beginPath();rx.moveTo(cx,cy);rx.lineTo(cx+Math.cos(ga)*mr,cy+Math.sin(ga)*mr);rx.stroke();
+  }
+  // Center blip
+  rx.fillStyle='rgba(0,255,100,0.8)';rx.beginPath();rx.arc(cx,cy,3,0,6.28);rx.fill();
+  rx.fillStyle='rgba(0,255,100,0.15)';rx.beginPath();rx.arc(cx,cy,6,0,6.28);rx.fill();
+  // Cardinal labels
+  rx.font='bold 8px var(--ff)';rx.fillStyle='rgba(0,255,100,0.15)';rx.textAlign='center';rx.textBaseline='middle';
+  rx.fillText('N',cx,cy-mr-10);rx.fillText('S',cx,cy+mr+10);rx.fillText('E',cx+mr+10,cy);rx.fillText('W',cx-mr-10,cy);
+  // Plane blips with heading arrows
+  planes.forEach(p=>{const dx=(p.lon-userLon)*111.32*Math.cos(userLat*Math.PI/180),dy=-(p.lat-userLat)*110.574;const dist=Math.hypot(dx,dy);if(dist>200)return;
+    const px=cx+(dx/200)*mr,py=cy+(dy/200)*mr;p._rx=px;p._ry=py;
+    const isMatch=planeMatchesFilter(p),hasFilter=!!filterCountry;
+    const alpha=hasFilter?(isMatch?1:0.15):1;
+    const isSel=selectedPlane?.icao===p.icao;
+    rx.globalAlpha=alpha;
+    // Afterglow: brighter if just swept by radar
+    const angleToPl=Math.atan2(py-cy,px-cx);
+    const angleDiff=((radarAngle-angleToPl)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+    const sweepGlow=angleDiff<0.5?1-angleDiff/0.5:0;
+    const baseGreen=isSel?'rgba(251,191,36,0.9)':(hasFilter&&isMatch?'rgba(251,191,36,0.7)':`rgba(0,${Math.round(200+55*sweepGlow)},${Math.round(80+20*sweepGlow)},${0.4+sweepGlow*0.5})`);
+    // Blip
+    rx.fillStyle=baseGreen;
+    const blipSz=isSel?4:(hasFilter&&isMatch?3.5:2+sweepGlow*1.5);
+    rx.beginPath();rx.arc(px,py,blipSz,0,6.28);rx.fill();
+    // Heading arrow
+    if(p.hdg!==null&&p.hdg!==undefined){
+      const ha=(p.hdg||0)*Math.PI/180-Math.PI/2;// convert to canvas angle (0=up→-PI/2)
+      // Actually heading 0=north=up on screen, so in canvas coords:
+      const hrad=(p.hdg||0)*Math.PI/180;
+      const arLen=8+sweepGlow*4;
+      rx.strokeStyle=baseGreen;rx.lineWidth=1;
+      rx.beginPath();rx.moveTo(px,py);rx.lineTo(px+Math.sin(hrad)*arLen,py-Math.cos(hrad)*arLen);rx.stroke();
+    }
+    // Label
+    rx.font='7px var(--fm)';rx.fillStyle=hasFilter&&isMatch?'rgba(251,191,36,0.5)':`rgba(0,255,100,${0.25+sweepGlow*0.2})`;rx.textAlign='left';
+    const distStr=dist<10?`${dist.toFixed(1)}km`:`${Math.round(dist)}km`;
+    rx.fillText(`${(p.callsign||'').trim()} ${toFL(p.alt||0)} ${distStr}`,px+8,py-3);
+    rx.globalAlpha=1;
+  });
+}
+
+function showInfo(p){
+  sfxTap();
+  if(navigator.vibrate)navigator.vibrate(15);// subtle haptic
+  selectedPlane=p;document.getElementById('infoPanel').classList.add('show');
+  const cs=(p.callsign||'').trim()||p.icao;
+  document.getElementById('iCS').textContent=cs;
+  document.getElementById('iAL').textContent=getAL(p.callsign)||p.country||'Unknown';
+  const alt=Math.round(p.alt||0),kmh=Math.round((p.spd||0)*3.6);
+  document.getElementById('iAlt').textContent=`${alt.toLocaleString()}m`;document.getElementById('iAltF').textContent=altFun(alt);
+  document.getElementById('iSpd').textContent=`${kmh}km/h`;document.getElementById('iSpdF').textContent=spdFun(kmh);
+  document.getElementById('iMach').textContent=`M${machAt(p.spd||0,alt)}`;document.getElementById('iMachF').textContent=parseFloat(machAt(p.spd||0,alt))>.85?t('transonic'):t('subsonic');
+  document.getElementById('iHdg').textContent=`${Math.round(p.hdg||0)}°`;document.getElementById('iHdgD').textContent=hdgDir(p.hdg||0);
+  const vsi=p.vsi||0;document.getElementById('iVsi').textContent=vsi>.5?`+${Math.round(vsi)}m/s`:vsi<-.5?`${Math.round(vsi)}m/s`:'0';
+  document.getElementById('iPh').textContent=vsi>1?t('climbing'):vsi<-1?t('descending'):t('cruise');
+  document.getElementById('iTemp').textContent=`${tempAt(alt)}°C`;
+
+  // Heritage info
+  const hi=document.getElementById('heritageInfo');
+  hi.classList.toggle('show',mode==='heritage');
+  if(mode==='heritage'){
+    const d=distKm(userLat,userLon,p.lat,p.lon);
+    document.getElementById('hiAlgBody').textContent=`Al-Khwarizmi's algorithms compute: speed ${kmh}km/h × heading ${Math.round(p.hdg||0)}° = this exact trajectory. His algebra powers every calculation.`;
+    document.getElementById('hiTrigBody').textContent=`This plane is ${Math.round(d)}km from you. Al-Battani's spherical trigonometry calculates this distance on Earth's curved surface.`;
+  }
+
+  // Expert info
+  const ei=document.getElementById('expertInfo');
+  ei.classList.toggle('hidden',mode!=='expert');
+  if(mode==='expert'){
+    document.getElementById('iFuel').textContent=`~${estFuelBurn(alt,p.spd)}kg/hr`;
+    const ct=contrailCheck(alt,tempAt(alt));
+    document.getElementById('iContrail').textContent=ct.likely?'✓ Likely':'✗ Unlikely';
+    document.getElementById('iContrailS').textContent=ct.detail;
+    const layer=atmosLayer(alt);
+    document.getElementById('iLayer').textContent=layer.name;
+    document.getElementById('iLayerS').textContent=layer.desc;
+    const dd=distKm(userLat,userLon,p.lat,p.lon);
+    document.getElementById('iDist').textContent=`${Math.round(dd)}km`;
+    document.getElementById('iISS').textContent=`${(alt/408000*100).toFixed(2)}%`;
+    const bb=bearing(userLat,userLon,p.lat,p.lon);
+    document.getElementById('iBear').textContent=`${Math.round(bb)}° ${hdgDir(bb)}`;
+  }
+
+  const c=CUL[p.country];
+  const dd=distKm(userLat,userLon,p.lat,p.lon);
+  if(c){document.getElementById('ccF').textContent=c.f;document.getElementById('ccD').textContent=p.country;document.getElementById('ccS').textContent=c.g;document.getElementById('ccFs').innerHTML=c.t.map(t=>`<span class="cft">${t}</span>`).join('')+`<span class="cft">📏 ${Math.round(dd)}${t('kmAway')}</span>`}
+  else{document.getElementById('ccF').textContent='🌍';document.getElementById('ccD').textContent=p.country||'Unknown';document.getElementById('ccS').textContent='';document.getElementById('ccFs').innerHTML=dd?`<span class="cft">📏 ${Math.round(dd)}${t('kmAway')}</span>`:''}
+
+  // Trigger heritage toast in heritage mode
+  if(mode==='heritage')triggerHeritage(p);
+}
+function closeInfo(){selectedPlane=null;document.getElementById('infoPanel').classList.remove('show')}
+
+// ========== Country Search/Filter ==========
+function getPlaneCountry(p){
+  // Try direct country field first
+  if(p.country)return p.country;
+  // Fallback: derive from callsign airline prefix
+  const cs=(p.callsign||'').trim();
+  if(cs.length>=3){const prefix=cs.substring(0,3).toUpperCase();if(AIRLINE_COUNTRY[prefix])return AIRLINE_COUNTRY[prefix]}
+  return null;
+}
+function planeMatchesFilter(p){
+  if(!filterCountry)return true;
+  const pc=getPlaneCountry(p);
+  if(!pc)return false;
+  // Match by country name
+  if(pc.toLowerCase()===filterCountry.toLowerCase())return true;
+  // Also match by airline prefix → country
+  const cs=(p.callsign||'').trim();
+  if(cs.length>=3){const ac=AIRLINE_COUNTRY[cs.substring(0,3).toUpperCase()];if(ac&&ac.toLowerCase()===filterCountry.toLowerCase())return true}
+  return false;
+}
+function getFilteredCount(){return planes.filter(planeMatchesFilter).length}
+function getAvailableCountries(){
+  const counts={};
+  planes.forEach(p=>{
+    const c=getPlaneCountry(p);if(!c)return;
+    counts[c]=(counts[c]||0)+1;
+    // Also count airline prefix country
+    const cs=(p.callsign||'').trim();
+    if(cs.length>=3){const ac=AIRLINE_COUNTRY[cs.substring(0,3).toUpperCase()];if(ac&&ac!==c)counts[ac]=(counts[ac]||0)+1}
+  });
+  return Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([name,count])=>({name,count,flag:CFLAGS[name]||CUL[name]?.f||'🌍'}));
+}
+function toggleSearch(){
+  const bar=document.getElementById('searchBar'),btn=document.getElementById('searchBtn');
+  const show=!bar.classList.contains('show');
+  bar.classList.toggle('show',show);btn.classList.toggle('active',show);
+  if(show){document.getElementById('searchInput').focus();onSearchInput()}
+  else{document.getElementById('suggestions').innerHTML='';sugHighlight=-1}
+}
+function onSearchInput(){
+  const q=document.getElementById('searchInput').value.trim().toLowerCase();
+  const sug=document.getElementById('suggestions');
+  sugHighlight=-1;
+  if(!q){
+    // Show all available countries sorted by count
+    const countries=getAvailableCountries();
+    if(!countries.length){sug.innerHTML='<div style="padding:8px;font-size:.65rem;color:var(--text3);text-align:center">No planes detected yet</div>';return}
+    sug.innerHTML=countries.slice(0,12).map((c,i)=>`<div class="sug-item" onclick="applyFilter('${c.name.replace(/'/g,"\\'")}','${c.flag}')" data-idx="${i}"><span class="sug-flag">${c.flag}</span><span class="sug-name">${c.name}</span><span class="sug-count">${c.count}</span></div>`).join('');
+    return;
+  }
+  // Filter by query — match country names AND airline names
+  const countries=getAvailableCountries();
+  let matches=countries.filter(c=>c.name.toLowerCase().includes(q));
+  // Also try matching airline names from AL lookup
+  const alMatches=Object.entries(AL).filter(([k,v])=>v.toLowerCase().includes(q)).map(([k])=>AIRLINE_COUNTRY[k]).filter(Boolean);
+  alMatches.forEach(cn=>{if(!matches.find(m=>m.name===cn)){const existing=countries.find(c=>c.name===cn);if(existing)matches.push(existing)}});
+  if(!matches.length){sug.innerHTML='<div style="padding:8px;font-size:.65rem;color:var(--text3);text-align:center">No matching countries in view</div>';return}
+  sug.innerHTML=matches.slice(0,10).map((c,i)=>`<div class="sug-item" onclick="applyFilter('${c.name.replace(/'/g,"\\'")}','${c.flag}')" data-idx="${i}"><span class="sug-flag">${c.flag}</span><span class="sug-name">${c.name}</span><span class="sug-count">${c.count}</span></div>`).join('');
+}
+function onSearchKey(e){
+  const items=document.querySelectorAll('.sug-item');
+  if(!items.length)return;
+  if(e.key==='ArrowDown'){e.preventDefault();sugHighlight=Math.min(sugHighlight+1,items.length-1);updateSugHighlight(items)}
+  else if(e.key==='ArrowUp'){e.preventDefault();sugHighlight=Math.max(sugHighlight-1,0);updateSugHighlight(items)}
+  else if(e.key==='Enter'&&sugHighlight>=0){e.preventDefault();items[sugHighlight].click()}
+  else if(e.key==='Escape'){toggleSearch();document.getElementById('searchInput').blur()}
+}
+function updateSugHighlight(items){items.forEach((el,i)=>el.classList.toggle('highlighted',i===sugHighlight))}
+function applyFilter(country,flag){
+  filterCountry=country;filterFlag=flag;
+  // Update filter pill
+  document.getElementById('fpFlag').textContent=flag;
+  document.getElementById('fpName').textContent=country;
+  updateFilterCount();
+  document.getElementById('filterPill').classList.add('show');
+  // Close search bar
+  document.getElementById('searchBar').classList.remove('show');
+  document.getElementById('searchBtn').classList.remove('active');
+  document.getElementById('searchInput').value='';
+  document.getElementById('suggestions').innerHTML='';
+  // Check no-match
+  checkNoMatch();
+}
+function clearFilter(){
+  filterCountry=null;filterFlag=null;
+  document.getElementById('filterPill').classList.remove('show');
+  document.getElementById('noMatchMsg').classList.remove('show');
+}
+function updateFilterCount(){
+  const c=getFilteredCount();
+  document.getElementById('fpCount').textContent=c;
+  checkNoMatch();
+}
+function checkNoMatch(){
+  const c=getFilteredCount();
+  const nm=document.getElementById('noMatchMsg');
+  if(filterCountry&&c===0){document.getElementById('nmCountry').textContent=`${filterFlag} ${filterCountry}`;nm.classList.add('show')}
+  else{nm.classList.remove('show')}
+}
+
+function setMode(m){
+  sfxMode();if(m==='pro')setTimeout(sfxRadar,150);
+  mode=m;document.querySelectorAll('.mBtn').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));
+  const isPro=m==='pro',isExp=m==='expert',isHer=m==='heritage';
+  document.getElementById('radarOverlay').classList.toggle('show',isPro);
+  document.getElementById('sqP').classList.toggle('show',isPro);
+  document.getElementById('wiP').classList.toggle('show',isPro);
+  document.getElementById('metarP').classList.toggle('show',isExp);
+  document.getElementById('atmosP').classList.toggle('show',isExp);
+  document.getElementById('airspaceP').classList.toggle('show',isExp);
+  document.getElementById('waypointP').classList.toggle('show',isExp);
+  document.getElementById('heatmapP').classList.toggle('show',isExp);
+  document.getElementById('exportBtn').classList.toggle('show',isExp);
+  document.getElementById('statsBar').classList.toggle('show',m!=='sky'&&!isHer);
+  document.getElementById('heritagePanel').classList.toggle('show',isHer);
+
+  // Update heritage panel live data
+  if(isHer){
+    document.getElementById('khwPlanes').textContent=planes.length;
+    document.getElementById('todayDesc').textContent=`${planes.length} planes tracked live above you. Every one uses algebra, algorithms, trigonometry, and optics pioneered by Islamic scholars over 1000 years ago.`;
+  }
+
+  if(isPro)updateProPanels();if(isExp)updateExpertPanels();
+}
+
+function updateProPanels(){
+  const sp=planes.filter(p=>p.squawk&&SQUAWK_S[p.squawk]);
+  const nm=planes.filter(p=>p.squawk).slice(0,3);
+  let h='';sp.forEach(p=>{h+=`<div class="ep-row" style="color:var(--red)"><span class="k">${(p.callsign||'').trim()}</span><span class="v">${p.squawk}</span></div>`});
+  nm.forEach(p=>{h+=`<div class="ep-row"><span class="k">${(p.callsign||'').trim()}</span><span class="v">${p.squawk||'—'}</span></div>`});
+  document.getElementById('sqL').innerHTML=h||'<div style="padding:0 10px;font-size:.55rem">No data</div>';
+  const e=planes.filter(p=>p.hdg>45&&p.hdg<135),w=planes.filter(p=>p.hdg>225&&p.hdg<315);
+  const ae=e.length?e.reduce((a,p)=>a+(p.spd||0),0)/e.length:0,aw=w.length?w.reduce((a,p)=>a+(p.spd||0),0)/w.length:0;
+  document.getElementById('wiI').innerHTML=`<div class="ep-row"><span class="k">Est.</span><span class="v">${Math.abs(Math.round((ae-aw)*1.8))}km/h</span></div>`;
+}
+function updateExpertPanels(){
+  const t=tempAt(0);
+  document.getElementById('metD').innerHTML=`<div class="ep-row"><span class="k">Temp</span><span class="v">${t}°C</span></div><div class="ep-row"><span class="k">QNH</span><span class="v">${1013+Math.round(Math.random()*6-3)}hPa</span></div><div class="ep-row"><span class="k">Vis</span><span class="v">10km+</span></div>`;
+  document.getElementById('atmD').innerHTML=`<div class="ep-row"><span class="k">Troposphere</span><span class="v">0-11km</span></div><div class="ep-row"><span class="k">Jets at</span><span class="v">~10km</span></div><div class="ep-row"><span class="k">Jet stream</span><span class="v">~200kt</span></div><div class="ep-row"><span class="k">ISS</span><span class="v">408km</span></div>`;
+  // Airspace
+  document.getElementById('airD').innerHTML=`<div class="ep-row"><span class="k">Class A</span><span class="v">FL180-FL600</span></div><div class="ep-row"><span class="k">Class B</span><span class="v">Sfc-FL100</span></div><div class="ep-row"><span class="k">Above FL180</span><span class="v">${planes.filter(p=>(p.alt||0)>5486).length} planes</span></div><div class="ep-row"><span class="k">Below FL180</span><span class="v">${planes.filter(p=>(p.alt||0)<=5486).length} planes</span></div>`;
+  // Nearby waypoints
+  const nearWP=WAYPOINTS.map(w=>({...w,d:distKm(userLat,userLon,w.lat,w.lon)})).sort((a,b)=>a.d-b.d).slice(0,5);
+  document.getElementById('wpD').innerHTML=nearWP.map(w=>`<div class="ep-row"><span class="k">${w.id}</span><span class="v">${Math.round(w.d)}km ${hdgDir(bearing(userLat,userLon,w.lat,w.lon))}</span></div>`).join('');
+  // Heatmap
+  drawHeatmap();
+}
+function drawHeatmap(){
+  const hc=document.getElementById('heatCanvas');if(!hc)return;
+  const hx=hc.getContext('2d');const hw=hc.width=hc.offsetWidth*2,hh=hc.height=62*2;
+  hx.setTransform(2,0,0,2,0,0);const w=hw/2,h=hh/2;hx.clearRect(0,0,w,h);
+  const gW=12,gH=8,grid=Array.from({length:gH},()=>Array(gW).fill(0));
+  planes.forEach(p=>{const dx=(p.lon-userLon)*111.32*Math.cos(userLat*Math.PI/180),dy=-(p.lat-userLat)*110.574;
+    const gx=Math.floor((dx/400+.5)*gW),gy=Math.floor((dy/400+.5)*gH);
+    if(gx>=0&&gx<gW&&gy>=0&&gy<gH)grid[gy][gx]++});
+  const mx=Math.max(1,...grid.flat()),cW=w/gW,cH=h/gH;
+  for(let y=0;y<gH;y++)for(let x=0;x<gW;x++){const v=grid[y][x]/mx;
+    if(v>0){hx.fillStyle=v>.6?`rgba(251,60,60,${v*.6})`:v>.3?`rgba(251,191,36,${v*.5})`:`rgba(52,211,153,${v*.4})`;
+    hx.fillRect(x*cW,y*cH,cW-1,cH-1)}}
+}
+function bearing(a,b,c,d){const dL=(d-b)*Math.PI/180,y=Math.sin(dL)*Math.cos(c*Math.PI/180),x=Math.cos(a*Math.PI/180)*Math.sin(c*Math.PI/180)-Math.sin(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.cos(dL);return((Math.atan2(y,x)*180/Math.PI)+360)%360}
+
+function exportCSV(){
+  let csv='icao24,callsign,country,lat,lon,alt_m,speed_ms,heading,vsi,squawk\n';
+  planes.forEach(p=>{csv+=`${p.icao},${(p.callsign||'').trim()},${p.country},${p.lat},${p.lon},${p.alt},${p.spd},${p.hdg},${p.vsi},${p.squawk||''}\n`});
+  const b=new Blob([csv],{type:'text/csv'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`planes_${Date.now()}.csv`;a.click();
+}
+
+function handleClick(e){
+  const t=e.touches?e.touches[0]:e;let cl=null,cd=Infinity;
+  if(mode==='pro'){planes.forEach(p=>{if(!p._rx)return;const d=Math.hypot(p._rx-t.clientX,p._ry-t.clientY);if(d<30&&d<cd){cl=p;cd=d}})}
+  if(!cl){planes.forEach(p=>{if(!p._sx)return;const d=Math.hypot(p._sx-t.clientX,p._sy-t.clientY);if(d<Math.max(p._size*.8,24)&&d<cd){cl=p;cd=d}})}
+  cl?showInfo(cl):closeInfo();
+}
+function onPD(e){if(hasGyro)return;if(e.touches&&e.touches.length===2){pinchStart=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);return}isDrag=true;const t=e.touches?e.touches[0]:e;dSX=t.clientX-dOX;dSY=t.clientY-dOY}
+function onPM(e){if(hasGyro)return;if(e.touches&&e.touches.length===2&&pinchStart){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);viewZoom=Math.max(0.5,Math.min(3,viewZoom*(d/pinchStart)));pinchStart=d;return}if(!isDrag)return;const t=e.touches?e.touches[0]:e;dOX=Math.max(-200,Math.min(200,t.clientX-dSX));dOY=Math.max(-200,Math.min(200,t.clientY-dSY));viewOffX=dOX;viewOffY=dOY}
+function onPU(){isDrag=false;pinchStart=0}
+function initGyro(){if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){DeviceOrientationEvent.requestPermission().then(s=>{if(s==='granted'){addEventListener('deviceorientation',onG);hasGyro=true}}).catch(()=>{})}else if('DeviceOrientationEvent'in window)addEventListener('deviceorientation',onG)}
+function onG(e){if(!hasGyro&&e.alpha!==null){hasGyro=true;gyroOff.a=e.alpha||0}if(!hasGyro)return;viewOffX=Math.max(-300,Math.min(300,-(((e.alpha-gyroOff.a+540)%360)-180)*2.5));viewOffY=Math.max(-300,Math.min(300,((e.beta||90)-70)*2))}
+
+async function fetchPlanes(){
+  if(!userLat&&!userLon)return;const r=1.8;
+  if(demoMode){updateDemoPlanes();planes=demoPlanes;updC();updS();if(filterCountry)updateFilterCount();
+    if(mode==='heritage'){document.getElementById('khwPlanes').textContent=planes.length;document.getElementById('todayDesc').textContent=`${planes.length} simulated planes (demo). Every one uses Islamic scholars' math.`}
+    if(mode==='pro')updateProPanels();if(mode==='expert')updateExpertPanels();
+    if(selectedPlane){const u=planes.find(p=>p.icao===selectedPlane.icao);if(u){selectedPlane=u;showInfo(u)}}
+    if(mode==='heritage'&&planes.length>0&&!lastHeritageTrigger)triggerHeritage(planes[0]);
+    return;
+  }
+  // Choose data source: SDR or OpenSky API
+  const apiUrl=sdrConnected&&sdrUrl&&sdrUrl!=='__demo__'
+    ?`${sdrUrl}/api/aircraft`
+    :`https://opensky-network.org/api/states/all?lamin=${userLat-r}&lamax=${userLat+r}&lomin=${userLon-r}&lomax=${userLon+r}`;
+  // SDR demo uses demo planes, skip API fetch
+  if(sdrUrl==='__demo__')return;
+  try{const resp=await fetch(apiUrl);
+    if(!resp.ok)throw 0;const data=await resp.json();
+    fetchFails=0;
+    if(!data.states){planes=[];updC();return}
+    const np=data.states.map(s=>({icao:s[0],callsign:s[1],country:s[2],lon:s[5],lat:s[6],alt:s[7]||s[13]||0,onGround:s[8],spd:s[9],hdg:s[10],vsi:s[11],squawk:s[14]})).filter(p=>!p.onGround&&p.lat&&p.lon);
+    np.forEach(n=>{const o=planes.find(p=>p.icao===n.icao);n.trail=o?.trail?[...o.trail,{lat:n.lat,lon:n.lon}].slice(-15):[{lat:n.lat,lon:n.lon}];
+      // SDR doesn't provide country - derive from ICAO hex address + callsign
+      if(!n.country||n.country==='null'){
+        // First try ICAO address prefix (most reliable for SDR)
+        const icaoCountry=icaoToCountry(n.icao);
+        if(icaoCountry){n.country=icaoCountry}
+        // Then try callsign airline prefix
+        else if(n.callsign){const cs=n.callsign.trim();if(cs.length>=3){const ac=AIRLINE_COUNTRY[cs.substring(0,3).toUpperCase()];if(ac)n.country=ac}}
+      }
+    });
+    planes=np;updC();updS();if(filterCountry)updateFilterCount();if(!firstFetchDone)hideLoading();
+    // Audio: adjust wind intensity based on plane count
+    if(audioOn&&windNode){const intensity=Math.min(0.12,0.02+planes.length*0.001);windNode.gain.value=intensity}
+    if(mode==='heritage'){document.getElementById('khwPlanes').textContent=planes.length;document.getElementById('todayDesc').textContent=`${planes.length} planes tracked live. Every one uses Islamic scholars' math.`}
+    if(mode==='pro')updateProPanels();if(mode==='expert')updateExpertPanels();
+    if(selectedPlane){const u=planes.find(p=>p.icao===selectedPlane.icao);if(u){selectedPlane=u;showInfo(u)}}
+    // Auto-trigger heritage on first fetch in heritage mode
+    if(mode==='heritage'&&planes.length>0&&!lastHeritageTrigger)triggerHeritage(planes[0]);
+  }catch(e){
+    console.warn('API fetch failed:',e);
+    fetchFails++;
+    if(fetchFails>=2&&!demoMode){
+      // After 2 consecutive failures, activate demo mode
+      demoMode=true;
+      demoPlanes=genDemoPlanes(10+Math.floor(Math.random()*8));
+      planes=demoPlanes;updC();updS();
+      showDemoBadge(true);if(!firstFetchDone)hideLoading();
+    }
+  }
+}
+let displayCount=0,countAnimId=null,lastPlaneCount=0;
+function updC(){
+  const target=planes.length;
+  // Bump animation if count changed significantly
+  if(Math.abs(target-lastPlaneCount)>=2){
+    const pill=document.querySelector('.pill');if(pill){pill.classList.remove('bump');void pill.offsetWidth;pill.classList.add('bump')}
+  }
+  lastPlaneCount=target;
+  if(target===displayCount){document.getElementById('planeNum').textContent=target;return}
+  if(countAnimId)cancelAnimationFrame(countAnimId);
+  const start=displayCount,diff=target-start,startT=performance.now(),dur=400;
+  function tick(now){
+    const p=Math.min(1,(now-startT)/dur);
+    const ease=1-Math.pow(1-p,3);
+    displayCount=Math.round(start+diff*ease);
+    document.getElementById('planeNum').textContent=displayCount;
+    if(p<1)countAnimId=requestAnimationFrame(tick);
+    else{displayCount=target;countAnimId=null}
+  }
+  countAnimId=requestAnimationFrame(tick);
+  checkProximity();
+}
+// Proximity alert - notify when a plane is very close
+let proxAlertTimer=null,lastProxAlert=0;
+function checkProximity(){
+  if(!planes.length||Date.now()-lastProxAlert<30000)return;// cooldown 30s
+  let closest=null,closestDist=Infinity;
+  planes.forEach(p=>{
+    const d=distKm(userLat,userLon,p.lat,p.lon);
+    if(d<closestDist){closestDist=d;closest=p}
+  });
+  if(closest&&closestDist<8){// within 8km
+    lastProxAlert=Date.now();
+    const al=getAL(closest.callsign)||closest.country||'Unknown';
+    const el=document.getElementById('proxAlert');
+    el.textContent=(LANG[curLang]||LANG.en).proxMsg(al,closest.alt||0,closestDist);
+    el.classList.add('show');
+    if(navigator.vibrate)navigator.vibrate([10,50,10]);
+    if(proxAlertTimer)clearTimeout(proxAlertTimer);
+    proxAlertTimer=setTimeout(()=>el.classList.remove('show'),5000);
+  }
+}
+function updS(){if(!planes.length)return;document.getElementById('sT').textContent=planes.length;
+  const h=planes.reduce((a,b)=>(a.alt||0)>(b.alt||0)?a:b);document.getElementById('sH').textContent=h.alt?`${Math.round(h.alt)}m`:'—';
+  const f=planes.reduce((a,b)=>(a.spd||0)>(b.spd||0)?a:b);document.getElementById('sF').textContent=f.spd?`${Math.round(f.spd*3.6)}km/h`:'—'}
+
+function useGPS(){document.getElementById('locStatus').textContent=t('locFinding');navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>{userLat=p.coords.latitude;userLon=p.coords.longitude;startApp()},()=>{document.getElementById('locStatus').textContent=t('locDenied')},{enableHighAccuracy:true,timeout:10000}):document.getElementById('locStatus').textContent=t('locNoGPS')}
+function pickCity(la,lo){userLat=la;userLon=lo;startApp()}
+async function searchCity(){const q=document.getElementById('cityInput').value.trim();if(!q)return;try{const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`);const d=await r.json();if(d[0]){userLat=+d[0].lat;userLon=+d[0].lon;startApp()}else document.getElementById('locStatus').textContent='Not found.'}catch(e){document.getElementById('locStatus').textContent='Failed.'}}
+// ========== Onboarding Tutorial ==========
+function getOBSlides(){return (LANG[curLang]||LANG.en).onboard}
+let obStep=0;
+function showOnboarding(){
+  const ob=document.getElementById('onboarding');ob.classList.add('show');
+  obStep=0;renderOBSlide();
+}
+function renderOBSlide(){
+  const s=getOBSlides()[obStep];
+  document.getElementById('obEmoji').textContent=s.emoji;
+  document.getElementById('obTitle').textContent=s.title;
+  document.getElementById('obText').textContent=s.text;
+  document.getElementById('obDots').innerHTML=getOBSlides().map((_,i)=>`<div class="ob-dot${i===obStep?' active':''}"></div>`).join('');
+  document.getElementById('obNext').textContent=obStep===getOBSlides().length-1?'Let\'s Go! 🚀':'Next ✈️';
+}
+function nextOnboarding(){
+  obStep++;
+  if(obStep>=getOBSlides().length){skipOnboarding();return}
+  renderOBSlide();
+}
+function skipOnboarding(){
+  document.getElementById('onboarding').classList.remove('show');
+  // Show brief contextual hints
+  setTimeout(()=>{showHint('searchBtn','Press F or tap to search',3000)},2000);
+}
+function showHint(targetId,text,dur){
+  const el=document.getElementById(targetId);if(!el)return;
+  const r=el.getBoundingClientRect();
+  let h=document.createElement('div');h.className='ob-hint';h.textContent=text;
+  h.style.top=(r.bottom+6)+'px';h.style.left=Math.min(r.left,window.innerWidth-180)+'px';
+  document.body.appendChild(h);
+  requestAnimationFrame(()=>h.classList.add('show'));
+  setTimeout(()=>{h.classList.remove('show');setTimeout(()=>h.remove(),400)},dur||3000);
+}
+function startApp(){document.getElementById('locPicker').classList.add('hidden');showLoading();showOnboarding();fetchPlanes();setInterval(fetchPlanes,12000);initGyro();resize();requestAnimationFrame(draw)}
+
+function drawNearestIndicator(){
+  if(!planes.length||selectedPlane)return;
+  // Find nearest plane
+  let nearest=null,minD=Infinity;
+  planes.forEach(p=>{const d=distKm(userLat,userLon,p.lat,p.lon);if(d<minD){minD=d;nearest=p}});
+  if(!nearest)return;
+  const s=toScr(nearest.lat,nearest.lon,nearest.alt);
+  // Only show arrow if plane is off-screen or far from center
+  if(s.x>30&&s.x<W-30&&s.y>60&&s.y<H-30)return;
+  const ang=Math.atan2(s.y-H/2,s.x-W/2);
+  const ax=W/2+Math.cos(ang)*Math.min(W,H)*.38,ay=H/2+Math.sin(ang)*Math.min(W,H)*.38;
+  X.save();X.translate(ax,ay);X.rotate(ang);
+  X.globalAlpha=0.4+0.2*Math.sin(time*3);
+  X.fillStyle='rgba(251,191,36,0.6)';X.beginPath();X.moveTo(10,0);X.lineTo(-4,-5);X.lineTo(-4,5);X.closePath();X.fill();
+  X.restore();
+  X.globalAlpha=0.3+0.15*Math.sin(time*3);
+  X.font='500 8px var(--fm)';X.fillStyle='rgba(251,191,36,0.6)';X.textAlign='center';
+  X.fillText(`${Math.round(minD)}km`,ax,ay+14);
+  X.globalAlpha=1;
+}
+function drawAltLegend(){
+  if(mode==='sky'||!planes.length)return;
+  const lx=8,ly=H-80,lh=60,lw=4;
+  X.globalAlpha=0.3;
+  for(let i=0;i<lh;i++){
+    const r=i/lh;
+    const cr=Math.round(52+203*r),cg=Math.round(211-131*r),cb=Math.round(153+102*r);
+    X.fillStyle=`rgb(${cr},${cg},${cb})`;X.fillRect(lx,ly+lh-i,lw,1);
+  }
+  X.font='500 6px var(--fm)';X.fillStyle='rgba(255,255,255,0.4)';X.textAlign='left';
+  X.fillText('12km',lx+7,ly+2);X.fillText('0',lx+7,ly+lh);
+  X.globalAlpha=1;
+}
+function trackPlaneCount(){
+  const now=Date.now();
+  if(now-lastCountPush>15000){// every 15s
+    planeCountHistory.push(planes.length);
+    if(planeCountHistory.length>40)planeCountHistory.shift();
+    lastCountPush=now;
+    drawSparkline();
+  }
+}
+function drawSparkline(){
+  const el=document.getElementById('sparkline');if(!el||planeCountHistory.length<2)return;
+  const c=el.getContext('2d'),w=el.width,h=el.height;
+  c.clearRect(0,0,w,h);
+  const max=Math.max(...planeCountHistory,1),pts=planeCountHistory;
+  c.strokeStyle='rgba(251,191,36,0.5)';c.lineWidth=1;c.beginPath();
+  pts.forEach((v,i)=>{const x=i/(pts.length-1)*w,y=h-v/max*(h-2)-1;i===0?c.moveTo(x,y):c.lineTo(x,y)});
+  c.stroke();
+  // Fill under
+  c.lineTo(w,h);c.lineTo(0,h);c.closePath();
+  c.fillStyle='rgba(251,191,36,0.06)';c.fill();
+}
+// Zoom indicator
+let lastZoom=1,zoomTimer=null;
+function updateZoomIndicator(){
+  if(Math.abs(viewZoom-lastZoom)>0.01){
+    lastZoom=viewZoom;
+    const el=document.getElementById('zoomInd');
+    el.textContent=viewZoom.toFixed(1)+'×';
+    el.classList.add('show');
+    if(zoomTimer)clearTimeout(zoomTimer);
+    zoomTimer=setTimeout(()=>el.classList.remove('show'),1500);
+  }
+}
+// Loading overlay
+let firstFetchDone=false;
+function showLoading(){document.getElementById('loadingOverlay').classList.remove('hidden')}
+function hideLoading(){document.getElementById('loadingOverlay').classList.add('hidden');firstFetchDone=true}
+function draw(ts){
+  time=ts/1000;X.clearRect(0,0,W,H);
+  if(mode==='pro'){drawRadar()}
+  else{drawSky();drawStars();drawCelestial();drawClouds();drawDistanceRings();drawArabicStars();drawPlanes();drawCompass();drawNearestIndicator();drawAltLegend()}
+  trackPlaneCount();updateZoomIndicator();
+  requestAnimationFrame(draw);
+}
+
+addEventListener('resize',resize);
+C.addEventListener('wheel',e=>{e.preventDefault();viewZoom=Math.max(0.5,Math.min(3,viewZoom*(e.deltaY>0?0.92:1.08)))},{passive:false});
+// Double-click/tap resets zoom & pan
+let lastTapTime=0;
+C.addEventListener('dblclick',e=>{e.preventDefault();viewZoom=1;viewOffX=0;viewOffY=0;dOX=0;dOY=0});
+C.addEventListener('touchend',e=>{const now=Date.now();if(now-lastTapTime<300&&e.changedTouches.length===1){viewZoom=1;viewOffX=0;viewOffY=0;dOX=0;dOY=0}lastTapTime=now},{passive:true});
+C.addEventListener('click',handleClick);C.addEventListener('touchstart',handleClick,{passive:true});
+C.addEventListener('mousedown',onPD);C.addEventListener('mousemove',onPM);C.addEventListener('mouseup',onPU);
+C.addEventListener('touchstart',onPD,{passive:true});C.addEventListener('touchmove',onPM,{passive:true});C.addEventListener('touchend',onPU);
+document.getElementById('radarCanvas').addEventListener('click',handleClick);
+document.getElementById('radarCanvas').addEventListener('touchstart',handleClick,{passive:true});
+// Keyboard shortcuts
+addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if(e.key==='f'||e.key==='F'||e.key==='/'){e.preventDefault();toggleSearch();return}
+  if(e.key==='d'||e.key==='D'){
+    demoMode=!demoMode;
+    if(demoMode){demoPlanes=genDemoPlanes(10+Math.floor(Math.random()*8));planes=demoPlanes;updC();updS();showDemoBadge(true)}
+    else{demoPlanes=[];fetchFails=0;showDemoBadge(false);fetchPlanes()}
+  }
+  if(e.key==='1')setMode('sky');if(e.key==='2')setMode('learn');if(e.key==='3')setMode('pro');if(e.key==='4')setMode('expert');if(e.key==='5')setMode('heritage');
+  // Shape cycling
+  if(e.key==='s'||e.key==='S'){const shapes=['jet','fighter','prop','heli','paper','rocket','bird','ufo','star'];const ci=shapes.indexOf(planeShape);setShape(shapes[(ci+1)%shapes.length])}
+  // Zoom
+  if(e.key==='='||e.key==='+')viewZoom=Math.min(3,viewZoom*1.2);
+  if(e.key==='-')viewZoom=Math.max(0.5,viewZoom/1.2);
+  if(e.key==='r'||e.key==='R'){viewZoom=1;viewOffX=0;viewOffY=0;dOX=0;dOY=0}
+  if(e.key==='Escape'){closeInfo();closeToast();closeHeritage();if(document.getElementById('searchBar').classList.contains('show'))toggleSearch();if(document.getElementById('shapePicker').classList.contains('show'))toggleShapePicker();if(document.getElementById('sdrPanel').classList.contains('show'))toggleSdrPanel();if(filterCountry)clearFilter()}
+});
+resize();
+// ========== ARABIC VIRTUAL KEYBOARD ==========
+const ARKB_ROWS=[
+  ['ض','ص','ث','ق','ف','غ','ع','ه','خ','ح','ج','د'],
+  ['ش','س','ي','ب','ل','ا','ت','ن','م','ك','ط'],
+  ['ئ','ء','ؤ','ر','لا','ى','ة','و','ز','ظ'],
+];
+const ARKB_TASHKEEL=['َ','ُ','ِ','ّ','ً','ٌ','ٍ','ْ'];
+let arkbOpen=false,arkbText='',arkbTarget=null;
+
+function buildArkb(){
+  // Row 1
+  document.getElementById('arkbR1').innerHTML=ARKB_ROWS[0].map(k=>`<button class="arkb-key" onpointerdown="arkbType('${k}')">${k}</button>`).join('');
+  // Row 2
+  document.getElementById('arkbR2').innerHTML=ARKB_ROWS[1].map(k=>`<button class="arkb-key" onpointerdown="arkbType('${k}')">${k}</button>`).join('');
+  // Row 3: backspace + letters + tashkeel toggle
+  document.getElementById('arkbR3').innerHTML=
+    `<button class="arkb-key wide" onpointerdown="arkbBackspace()">⌫</button>`+
+    ARKB_ROWS[2].map(k=>`<button class="arkb-key" onpointerdown="arkbType('${k}')">${k}</button>`).join('')+
+    `<button class="arkb-key wide" id="arkbTashBtn" onpointerdown="arkbToggleTashkeel()">◌َ</button>`;
+  // Row 4: send + space + common punctuation
+  document.getElementById('arkbR4').innerHTML=
+    `<button class="arkb-key send" onpointerdown="arkbSend()">إدخال</button>`+
+    `<button class="arkb-key" onpointerdown="arkbType('.')">.</button>`+
+    `<button class="arkb-key space" onpointerdown="arkbType(' ')">مسافة</button>`+
+    `<button class="arkb-key" onpointerdown="arkbType('،')">،</button>`+
+    `<button class="arkb-key" onpointerdown="arkbType('؟')">؟</button>`;
+}
+
+let arkbTashkeelOpen=false,arkbTashkeelRow=null;
+function arkbToggleTashkeel(){
+  if(arkbTashkeelOpen){
+    if(arkbTashkeelRow){arkbTashkeelRow.remove();arkbTashkeelRow=null}
+    arkbTashkeelOpen=false;
+    document.getElementById('arkbTashBtn').style.background='';
+    return;
+  }
+  arkbTashkeelOpen=true;
+  document.getElementById('arkbTashBtn').style.background='rgba(251,191,36,0.15)';
+  arkbTashkeelRow=document.createElement('div');
+  arkbTashkeelRow.className='arkb-row';
+  arkbTashkeelRow.style.marginTop='2px';
+  arkbTashkeelRow.innerHTML=ARKB_TASHKEEL.map(t=>`<button class="arkb-key" style="font-size:1.1rem" onpointerdown="arkbType('${t}')">◌${t}</button>`).join('');
+  document.getElementById('arkbR3').after(arkbTashkeelRow);
+}
+
+function arkbType(ch){
+  arkbText+=ch;
+  updateArkbPreview();
+  // Also insert into focused input if any
+  if(arkbTarget){
+    const start=arkbTarget.selectionStart,end=arkbTarget.selectionEnd;
+    arkbTarget.value=arkbTarget.value.substring(0,start)+ch+arkbTarget.value.substring(end);
+    arkbTarget.selectionStart=arkbTarget.selectionEnd=start+ch.length;
+    arkbTarget.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+}
+
+function arkbBackspace(){
+  if(arkbText.length>0)arkbText=arkbText.slice(0,-1);
+  updateArkbPreview();
+  if(arkbTarget&&arkbTarget.value.length>0){
+    const start=arkbTarget.selectionStart,end=arkbTarget.selectionEnd;
+    if(start===end&&start>0){
+      arkbTarget.value=arkbTarget.value.substring(0,start-1)+arkbTarget.value.substring(start);
+      arkbTarget.selectionStart=arkbTarget.selectionEnd=start-1;
+    }else{
+      arkbTarget.value=arkbTarget.value.substring(0,start)+arkbTarget.value.substring(end);
+      arkbTarget.selectionStart=arkbTarget.selectionEnd=start;
+    }
+    arkbTarget.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+}
+
+function arkbSend(){
+  // Insert preview text into current target or trigger search
+  if(arkbTarget){
+    arkbTarget.focus();
+    if(arkbTarget.id==='searchInput')onSearchInput();
+    if(arkbTarget.id==='cityInput'){
+      // Trigger city search
+      const ev=new KeyboardEvent('keydown',{key:'Enter',bubbles:true});
+      arkbTarget.dispatchEvent(ev);
+    }
+  }
+}
+
+function arkbCopy(){
+  const text=arkbText||((arkbTarget&&arkbTarget.value)||'');
+  if(!text)return;
+  navigator.clipboard.writeText(text).then(()=>{
+    showArkbToast('تم النسخ ✓');
+  }).catch(()=>{
+    // Fallback
+    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+    showArkbToast('تم النسخ ✓');
+  });
+}
+
+function arkbPaste(){
+  navigator.clipboard.readText().then(text=>{
+    if(text){
+      arkbText+=text;
+      updateArkbPreview();
+      if(arkbTarget){
+        const start=arkbTarget.selectionStart;
+        arkbTarget.value=arkbTarget.value.substring(0,start)+text+arkbTarget.value.substring(arkbTarget.selectionEnd);
+        arkbTarget.selectionStart=arkbTarget.selectionEnd=start+text.length;
+        arkbTarget.dispatchEvent(new Event('input',{bubbles:true}));
+      }
+      showArkbToast('تم اللصق ✓');
+    }
+  }).catch(()=>{showArkbToast('اللصق غير متاح')});
+}
+
+function arkbSelectAll(){
+  if(arkbTarget){arkbTarget.select()}
+  showArkbToast('تم التحديد ✓');
+}
+
+function arkbClear(){
+  arkbText='';
+  updateArkbPreview();
+  if(arkbTarget){arkbTarget.value='';arkbTarget.dispatchEvent(new Event('input',{bubbles:true}))}
+}
+
+function updateArkbPreview(){
+  document.getElementById('arkb-preview-text').textContent=arkbText||'';
+}
+
+function showArkbToast(msg){
+  const prev=document.getElementById('arkb-preview-text');
+  const old=prev.textContent;
+  prev.textContent=msg;
+  prev.style.color='var(--accent)';
+  setTimeout(()=>{prev.textContent=old;prev.style.color=''},800);
+}
+
+function toggleArkb(){
+  arkbOpen=!arkbOpen;
+  document.getElementById('arkb').classList.toggle('show',arkbOpen);
+  document.getElementById('arkb-toggle').classList.toggle('active',arkbOpen);
+  if(arkbOpen){
+    // Auto-focus search input or city input if visible
+    const si=document.getElementById('searchInput');
+    const ci=document.getElementById('cityInput');
+    if(si&&document.getElementById('searchBar').classList.contains('show')){arkbTarget=si;si.focus()}
+    else if(ci&&!document.getElementById('locPicker').classList.contains('hidden')){arkbTarget=ci;ci.focus()}
+    else arkbTarget=null;
+  }else{
+    // Close tashkeel row if open
+    if(arkbTashkeelOpen)arkbToggleTashkeel();
+  }
+}
+
+// Track which input has focus
+document.addEventListener('focusin',e=>{
+  if(e.target.tagName==='INPUT'&&e.target.type==='text'){
+    arkbTarget=e.target;
+  }
+});
+
+// Show keyboard toggle when Arabic is active
+function updateArkbVisibility(){
+  const el=document.getElementById('arkb-toggle');
+  if(curLang==='ar')el.classList.add('show');
+  else{el.classList.remove('show');if(arkbOpen)toggleArkb()}
+}
+
+// Build keyboard on load
+buildArkb();
+
+// Auto-detect language from browser
+(function(){
+  const bl=(navigator.language||navigator.userLanguage||'en').toLowerCase();
+  if(bl.startsWith('ar'))setLang('ar');
+  else if(bl.startsWith('fr'))setLang('fr');
+  else setLang('en');
+})();
+</script>
+<!-- Arabic Virtual Keyboard -->
+<button id="arkb-toggle" onclick="toggleArkb()" title="Arabic keyboard">⌨️</button>
+<div id="arkb">
+  <div id="arkb-bar">
+    <span class="arkb-title">لوحة المفاتيح العربية</span>
+    <div class="arkb-actions">
+      <button class="arkb-act" onclick="arkbSelectAll()" title="Select all">تحديد</button>
+      <button class="arkb-act" onclick="arkbCopy()" title="Copy">نسخ</button>
+      <button class="arkb-act" onclick="arkbPaste()" title="Paste">لصق</button>
+      <button class="arkb-act" onclick="arkbClear()" title="Clear">مسح</button>
+      <button class="arkb-act accent" onclick="toggleArkb()" title="Hide keyboard">▼ إخفاء</button>
+    </div>
+  </div>
+  <div id="arkb-preview"><span id="arkb-preview-text"></span><span id="arkb-preview-cursor"></span></div>
+  <div class="arkb-row" id="arkbR1"></div>
+  <div class="arkb-row" id="arkbR2"></div>
+  <div class="arkb-row" id="arkbR3"></div>
+  <div class="arkb-row" id="arkbR4"></div>
+</div>
+
+<div id="appFooter"><a href="https://workshop-diy.org" target="_blank" rel="noopener"><span>workshop-diy.org</span></a></div>
+</body>
+</html>

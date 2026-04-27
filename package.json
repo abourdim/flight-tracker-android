@@ -1,0 +1,34 @@
+{
+  "name": "flight-tracker",
+  "version": "1.0.0",
+  "description": "Planes in the Sky \u2014 Capacitor Android/iOS wrapper for Sheikh Mohammed al-Ghazali's book",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "islamic",
+    "al-ghazali",
+    "trilingual",
+    "arabic",
+    "education",
+    "flight-tracker"
+  ],
+  "author": "Abdelhak Bourdim <abdelhak.bourdim@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://workshop-diy.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/abourdim/flight-tracker-android.git"
+  },
+  "dependencies": {
+    "@capacitor-community/text-to-speech": "^8.0.0",
+    "@capacitor/android": "^8.3.1",
+    "@capacitor/core": "^8.3.1",
+    "@capacitor/ios": "^8.3.1",
+    "@capacitor-community/bluetooth-le": "^8.1.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.3.1"
+  }
+}

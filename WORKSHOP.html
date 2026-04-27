@@ -1,0 +1,2652 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Flight Tracker → Android · Workshop Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0F3460;
+    --navy-dark: #0A223D;
+    --red: #8B1A1A;
+    --green: #2E7D52;
+    --amber: #E8A93B;
+    --bg: #0B1729;
+    --bg-card: #132238;
+    --bg-card-hover: #1A2D48;
+    --text: #E7EFF9;
+    --text-dim: #9AB0C7;
+    --text-faint: #617791;
+    --border: #25395A;
+    --accent-grad: linear-gradient(135deg, #0F3460 0%, #8B1A1A 100%);
+    --ok: #4ADE80;
+    --warn: #FACC15;
+    --err: #F87171;
+    --info: #60A5FA;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .ar { font-family: 'Amiri', serif; direction: rtl; }
+  code, pre { font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace; font-size: 0.88em; }
+  a { color: #7DB2FF; text-decoration: none; border-bottom: 1px dotted rgba(125,178,255,.4); transition: .2s; }
+  a:hover { color: #fff; border-bottom-color: #fff; }
+
+  /* HERO */
+  .hero {
+    background: radial-gradient(ellipse at 70% 10%, rgba(139,26,26,0.35) 0%, transparent 55%),
+                radial-gradient(ellipse at 15% 90%, rgba(15,52,96,0.6) 0%, transparent 55%),
+                linear-gradient(180deg, #0A223D 0%, #0B1729 100%);
+    padding: 60px 24px 80px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,0.04) 1px, transparent 2px),
+      radial-gradient(circle at 80% 60%, rgba(255,255,255,0.03) 1px, transparent 2px);
+    background-size: 50px 50px, 80px 80px;
+    pointer-events: none;
+  }
+  .hero-inner { max-width: 900px; margin: 0 auto; position: relative; z-index: 2; }
+  .kicker { letter-spacing: 0.3em; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; font-weight: 600; }
+  h1.hero-title {
+    font-family: 'Amiri', serif;
+    font-size: clamp(3rem, 8vw, 6rem);
+    margin: 16px 0 8px;
+    background: linear-gradient(180deg, #fff 40%, #B8CBE3 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-sub { font-size: 1.15rem; color: var(--text-dim); max-width: 640px; margin: 0 auto; }
+  .hero-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 30px; }
+  .pill {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+  }
+  .pill.ok   { color: var(--ok);   border-color: rgba(74,222,128,.3); background: rgba(74,222,128,.06); }
+  .pill.warn { color: var(--warn); border-color: rgba(250,204,21,.3); background: rgba(250,204,21,.06); }
+
+  /* CONTAINER */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+  section { margin: 60px 0; }
+  section > h2 {
+    font-size: 2rem;
+    margin: 0 0 8px;
+    color: #fff;
+    display: flex; align-items: baseline; gap: 14px;
+  }
+  section > h2 .num {
+    font-family: 'Amiri', serif;
+    color: var(--amber);
+    font-size: 0.9em;
+    opacity: 0.6;
+    min-width: 2.5ch;
+  }
+  section > p.lede { color: var(--text-dim); margin: 0 0 28px; max-width: 75ch; }
+
+  /* TOC */
+  .toc {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin: 40px auto 0;
+    max-width: 900px;
+  }
+  .toc h3 { margin: 0 0 12px; font-size: 0.8rem; letter-spacing: .2em; text-transform: uppercase; color: var(--text-dim); }
+  .toc ol { margin: 0; padding-left: 1.4em; columns: 2; column-gap: 30px; color: var(--text); }
+  .toc ol li { margin: 4px 0; }
+  .toc a { border-bottom: none; }
+  .toc a:hover { color: var(--amber); }
+
+  /* CARDS */
+  .grid { display: grid; gap: 16px; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 720px) { .grid-3, .grid-2 { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: .25s;
+  }
+  .card:hover { border-color: rgba(125,178,255,.3); background: var(--bg-card-hover); }
+  .card h4 { margin: 0 0 8px; color: #fff; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; }
+  .card .meta { font-size: 0.8rem; color: var(--text-faint); font-family: 'JetBrains Mono', monospace; word-break: break-all; }
+  .card p { color: var(--text-dim); margin: 8px 0 0; font-size: 0.92rem; }
+  .card .status { display: inline-block; margin-top: 10px; }
+
+  /* ARCHITECTURE DIAGRAM wrapper */
+  .diagram-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 30px;
+    overflow-x: auto;
+  }
+  .diagram-wrap svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+  /* TIMELINE */
+  .timeline { position: relative; padding-left: 40px; }
+  .timeline::before {
+    content: ''; position: absolute;
+    left: 13px; top: 8px; bottom: 8px; width: 2px;
+    background: linear-gradient(180deg, var(--amber), var(--red), var(--navy));
+    border-radius: 2px;
+  }
+  .phase { position: relative; margin: 22px 0; }
+  .phase::before {
+    content: ''; position: absolute;
+    left: -35px; top: 6px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--bg); border: 3px solid var(--amber);
+    box-shadow: 0 0 0 3px var(--bg);
+  }
+  .phase h3 { margin: 0 0 4px; color: #fff; font-size: 1.15rem; }
+  .phase .when { color: var(--text-faint); font-size: 0.78rem; font-family: 'JetBrains Mono', monospace; }
+  .phase p { margin: 8px 0; color: var(--text-dim); }
+  .phase ul { color: var(--text-dim); margin: 6px 0 0; padding-left: 1.3em; }
+  .phase ul li { margin: 2px 0; }
+
+  /* CODE BLOCKS */
+  pre.code {
+    background: #070D1A;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    overflow-x: auto;
+    color: #D5E0EC;
+    line-height: 1.5;
+    margin: 12px 0;
+  }
+  pre.code .cmt { color: #6B7E95; font-style: italic; }
+  pre.code .kw  { color: #FF9EC9; }
+  pre.code .str { color: #9CEE87; }
+  pre.code .fn  { color: #7DB2FF; }
+
+  /* TOOL CARDS */
+  .tool {
+    display: flex; gap: 14px;
+    padding: 16px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: .2s;
+    align-items: flex-start;
+  }
+  .tool:hover { transform: translateY(-1px); border-color: rgba(232,169,59,.4); }
+  .tool-icon {
+    flex-shrink: 0;
+    width: 44px; height: 44px; border-radius: 10px;
+    background: var(--accent-grad);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+  }
+  .tool-body { flex: 1; min-width: 0; }
+  .tool-body h4 { margin: 0; font-size: 1rem; color: #fff; }
+  .tool-body .tag { color: var(--text-faint); font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; }
+  .tool-body p { margin: 6px 0 0; font-size: 0.9rem; color: var(--text-dim); }
+  .tool-body a { font-size: 0.85rem; }
+
+  /* STAT ROW */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 24px 0; }
+  @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  .stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat .num { font-size: 1.8rem; font-weight: 800; color: var(--amber); font-family: 'Inter'; line-height: 1; }
+  .stat .lbl { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 6px; }
+
+  /* KIDS BOX */
+  .kids {
+    background: linear-gradient(135deg, rgba(232,169,59,.08) 0%, rgba(139,26,26,.08) 100%);
+    border: 1px solid rgba(232,169,59,.3);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 14px 0;
+    position: relative;
+  }
+  .kids::before {
+    content: '🎓 For kids';
+    position: absolute; top: -10px; left: 14px;
+    background: var(--bg);
+    padding: 0 8px;
+    font-size: 0.72rem;
+    color: var(--amber);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .kids p { margin: 4px 0; color: var(--text); font-size: 0.95rem; }
+
+  /* TABLES */
+  table.neat { width: 100%; border-collapse: collapse; margin: 12px 0; background: var(--bg-card); border-radius: 10px; overflow: hidden; }
+  table.neat th, table.neat td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  table.neat th { background: rgba(255,255,255,0.03); font-size: 0.78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-dim); font-weight: 600; }
+  table.neat td { font-size: 0.9rem; }
+  table.neat tr:last-child td { border-bottom: none; }
+  table.neat code { color: #7DB2FF; }
+
+  /* BLOCKER BOX */
+  .blocker {
+    background: rgba(248,113,113,.07);
+    border-left: 3px solid var(--err);
+    padding: 14px 18px;
+    margin: 14px 0;
+    border-radius: 6px;
+  }
+  .blocker strong { color: var(--err); }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-faint);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+    margin-top: 60px;
+  }
+  footer .ar { font-size: 1.1rem; color: var(--text-dim); margin: 10px 0; }
+
+  /* SMALL UTILITIES */
+  .ok-dot, .warn-dot, .err-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; vertical-align: middle; margin-right: 6px; }
+  .ok-dot   { background: var(--ok); }
+  .warn-dot { background: var(--warn); }
+  .err-dot  { background: var(--err); }
+
+  .chip {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(125,178,255,.1);
+    color: #7DB2FF;
+    border: 1px solid rgba(125,178,255,.25);
+    margin-right: 4px;
+  }
+  .chip.ok   { background: rgba(74,222,128,.1);  color: var(--ok);   border-color: rgba(74,222,128,.25); }
+  .chip.warn { background: rgba(250,204,21,.1);  color: var(--warn); border-color: rgba(250,204,21,.25); }
+
+  hr.soft { border: none; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 30px 0; }
+
+  /* OS TABS */
+  .os-switch {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(11,23,41,0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 0;
+    margin: -10px 0 20px;
+  }
+  .os-switch-inner {
+    max-width: 1100px; margin: 0 auto; padding: 0 24px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .os-switch-label { font-size: 0.75rem; color: var(--text-faint); letter-spacing: 0.15em; text-transform: uppercase; margin-right: 4px; }
+  .os-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-family: inherit; font-size: 0.85rem;
+    cursor: pointer; transition: .2s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .os-btn:hover { border-color: rgba(125,178,255,.4); color: #fff; }
+  .os-btn[aria-pressed="true"] {
+    background: var(--accent-grad);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 2px 10px rgba(139,26,26,0.3);
+  }
+
+  /* Show/hide per OS — default mac visible */
+  body[data-os="mac"]   .os-linux,  body[data-os="mac"]   .os-win  { display: none; }
+  body[data-os="linux"] .os-mac,    body[data-os="linux"] .os-win  { display: none; }
+  body[data-os="win"]   .os-mac,    body[data-os="win"]   .os-linux{ display: none; }
+</style>
+<script>
+  (function(){
+    function setOS(os){
+      document.body.setAttribute('data-os', os);
+      try { localStorage.setItem('workshop-os', os); } catch(e){}
+      document.querySelectorAll('.os-btn').forEach(function(b){
+        b.setAttribute('aria-pressed', b.dataset.os === os ? 'true' : 'false');
+      });
+    }
+    window.addEventListener('DOMContentLoaded', function(){
+      var saved = null; try { saved = localStorage.getItem('workshop-os'); } catch(e){}
+      setOS(saved || 'mac');
+      document.querySelectorAll('.os-btn').forEach(function(b){
+        b.addEventListener('click', function(){ setOS(b.dataset.os); });
+      });
+    });
+  })();
+</script>
+</head>
+<body>
+
+<!-- ======================================================== HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="kicker">workshop-diy · field report</div>
+    <h1 class="hero-title">Flight Tracker → Android</h1>
+    <p class="hero-sub">
+      How a static Arabic/English/French web app turned into a real Android
+      application — signed, installable, and store-ready — in one working session.
+      Built as a reference for future workshops.
+    </p>
+    <div class="hero-badges">
+      <span class="pill ok"><span class="ok-dot"></span>APK builds</span>
+      <span class="pill ok"><span class="ok-dot"></span>AAB builds</span>
+      <span class="pill ok"><span class="ok-dot"></span>Runs on emulator</span>
+      <span class="pill ok"><span class="ok-dot"></span>Store assets ready</span>
+      <span class="pill warn"><span class="warn-dot"></span>Awaiting keystore + $25 Play fee</span>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================== OS SWITCH -->
+<div class="os-switch">
+  <div class="os-switch-inner">
+    <span class="os-switch-label">Your system:</span>
+    <button class="os-btn" data-os="mac"   aria-pressed="true">🍎 macOS</button>
+    <button class="os-btn" data-os="linux" aria-pressed="false">🐧 Linux</button>
+    <button class="os-btn" data-os="win"   aria-pressed="false">🪟 Windows (git-bash / MSYS2)</button>
+    <span class="os-switch-label" style="margin-left:auto">Commands below switch accordingly</span>
+  </div>
+</div>
+
+<main>
+
+<!-- ======================================================== STATS -->
+<section>
+  <div class="stats">
+    <div class="stat"><div class="num">54</div><div class="lbl">Books audited</div></div>
+    <div class="stat"><div class="num">2</div><div class="lbl">Unwired buttons fixed</div></div>
+    <div class="stat"><div class="num">4.1 MB</div><div class="lbl">Debug APK</div></div>
+    <div class="stat"><div class="num">3.0 MB</div><div class="lbl">Release AAB</div></div>
+  </div>
+</section>
+
+<!-- ======================================================== TOC -->
+<div class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#try-it" style="color:var(--amber)"><strong>Try it now — install Flight Tracker</strong></a></li>
+    <li><a href="#overview">Overview &amp; what was built</a></li>
+    <li><a href="#architecture">Architecture diagram</a></li>
+    <li><a href="#phases">Phases of the work</a></li>
+    <li><a href="#toolchain">Toolchain we installed</a></li>
+    <li><a href="#commands">Key commands reference</a></li>
+    <li><a href="#assets">Store assets produced</a></li>
+    <li><a href="#file-map">File map of the project</a></li>
+    <li><a href="#anatomy">Anatomy of an Android app (newbie tour)</a></li>
+    <li><a href="#anatomy-ios">Anatomy of an iOS app (newbie tour)</a></li>
+    <li><a href="#remaining">Remaining blockers</a></li>
+    <li><a href="#walkthrough">Step-by-step walkthrough (follow along)</a></li>
+    <li><a href="#manage-sh">The manage.sh script (full reference)</a></li>
+    <li><a href="#play-store">Publishing to Google Play Store (step-by-step)</a></li>
+    <li><a href="#ios">iOS / iPhone / App Store (macOS only)</a></li>
+    <li><a href="#glossary">Glossary for kids</a></li>
+  </ol>
+</div>
+
+<!-- ======================================================== TRY IT NOW -->
+<section id="try-it">
+  <h2><span class="num" style="color:var(--ok)">▶</span>Try it now — install Flight Tracker</h2>
+  <p class="lede">
+    Want to see the app on your phone before reading anything else? Grab the installable
+    build from the <a href="https://github.com/abourdim/flight-tracker-android/tree/main/releases">releases/</a> folder.
+  </p>
+
+  <div class="grid grid-2">
+
+    <!-- ANDROID -->
+    <div class="card" style="border-color:rgba(74,222,128,.4); background:linear-gradient(135deg, rgba(74,222,128,.05), var(--bg-card));">
+      <h4>🤖 Android — ready to install</h4>
+      <p class="meta">flight-tracker-v1.1-debug.apk · 4.1 MB · Android 6.0+</p>
+
+      <!-- Direct download button -->
+      <a href="https://github.com/abourdim/flight-tracker-android/releases/download/v1.1-debug/flight-tracker-v1.1-debug.apk"
+         download
+         style="display:flex; align-items:center; justify-content:center; gap:10px;
+                background:linear-gradient(135deg,#2E7D52,#4FAE7A); color:#fff;
+                padding:14px 18px; border-radius:10px; text-decoration:none;
+                border-bottom:none; font-weight:700; font-size:1rem;
+                margin:16px 0; box-shadow:0 4px 16px rgba(46,125,82,0.35);
+                transition:transform .15s;">
+        <span style="font-size:1.3em">⬇️</span>
+        <span>Download APK directly</span>
+      </a>
+
+      <!-- QR code + instructions side by side -->
+      <div style="display:flex; gap:16px; align-items:center; margin-top:16px;">
+        <!-- QR code -->
+        <div style="flex:0 0 auto;">
+          <div style="background:#fff; padding:8px; border-radius:8px; width:140px; height:140px;">
+            <img src="releases/download-qr.svg" alt="QR code: APK download" style="display:block; width:100%; height:100%;">
+          </div>
+          <p style="color:var(--text-faint); font-size:.72rem; text-align:center; margin:6px 0 0;">scan with phone camera</p>
+        </div>
+
+        <!-- Tap-install instructions -->
+        <div style="flex:1; min-width:0;">
+          <p style="margin:0 0 8px; color:var(--text); font-weight:600; font-size:.95rem;">📱 On the phone</p>
+          <ol style="color:var(--text-dim); font-size:.85rem; margin:0; padding-left:18px; line-height:1.5;">
+            <li>Scan QR or tap the download button above.</li>
+            <li>Open the downloaded <code style="font-size:.85em">.apk</code>.</li>
+            <li>Allow "Install unknown apps" if prompted (one-time).</li>
+            <li>Tap <strong>Install</strong>.</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Alt method: adb -->
+      <details style="margin-top:16px;">
+        <summary style="cursor:pointer; color:var(--text-dim); font-size:.85rem;">Alt method — install via <code>adb</code> from a computer</summary>
+        <pre class="code" style="font-size:.78em; margin-top:8px;"><span class="cmt"># Phone plugged in via USB, USB debugging enabled:</span>
+<span class="fn">curl</span> -LO https://github.com/abourdim/flight-tracker-android/releases/download/v1.1-debug/flight-tracker-v1.1-debug.apk
+<span class="fn">adb</span> install flight-tracker-v1.1-debug.apk</pre>
+      </details>
+    </div>
+
+    <!-- iOS -->
+    <div class="card" style="border-color:rgba(250,204,21,.3); background:linear-gradient(135deg, rgba(250,204,21,.04), var(--bg-card));">
+      <h4>📱 iOS / iPhone — not yet published</h4>
+      <p class="meta">IPA build pending full Xcode installation</p>
+      <p>iOS builds require <a href="https://apps.apple.com/app/xcode/id497799835">Xcode</a> (~10 GB, Mac App Store) which isn't installed on the build machine yet. Once it is, the IPA will be generated via:</p>
+      <pre class="code" style="font-size:.78em">./manage.sh   <span class="cmt"># macOS → choose 2 (iPhone)</span>
+  → 5 (sync web app)
+  → 6 (open Xcode)  <span class="cmt"># Product → Archive → Distribute</span></pre>
+      <p style="margin-top:12px">Until then, the only way to run it on an iPhone is by building locally (see <a href="#ios">§12 iOS</a>) or joining the future TestFlight beta.</p>
+    </div>
+
+  </div>
+
+  <div class="kids" style="margin-top:30px">
+    <p><strong>For workshop leaders:</strong> share the GitHub link (or a QR code pointing to <code>releases/</code>) at the start of the session — kids can install while you explain the architecture. On Android this takes 30 seconds on a modern phone.</p>
+  </div>
+</section>
+
+<!-- ======================================================== OVERVIEW -->
+<section id="overview">
+  <h2><span class="num">01</span>Overview &amp; what was built</h2>
+  <p class="lede">
+    Starting point: <code>flight-tracker</code> — a static <a href="https://developer.mozilla.org/docs/Web/HTML">HTML</a> +
+    <a href="https://developer.mozilla.org/docs/Web/CSS">CSS</a> +
+    <a href="https://developer.mozilla.org/docs/Web/JavaScript">JavaScript</a> educational app with 3 languages, themes,
+    quiz, and narrator. No frameworks, no dependencies.
+    Target: a real Android app in the Google Play Store.
+  </p>
+
+  <div class="kids">
+    <p><strong>Imagine</strong> a website that acts like an app. You want it on people's phones, not just in a browser. That's what we did: we put the website inside a tiny box that Android knows how to open, so it feels like any other app.</p>
+  </div>
+
+  <div class="grid grid-2" style="margin-top:20px">
+    <div class="card">
+      <h4>🕵️ Phase A — Audit</h4>
+      <p>Scanned all 54 sibling books for broken clickable elements. Found two unwired buttons (books 04 and 05 — reading-mode toggle). Verified 01-flight-tracker has no broken onclick handlers.</p>
+    </div>
+    <div class="card">
+      <h4>📱 Phase B — Mobile polish</h4>
+      <p>Viewed flight-tracker at 360×740. Header buttons were overlapping; fixed with a <code>@media (max-width:480px)</code> block. Replaced the header "W" text with the real workshop-diy logo image.</p>
+    </div>
+    <div class="card">
+      <h4>📦 Phase C — Capacitor wrapping</h4>
+      <p>Used <a href="https://capacitorjs.com">Capacitor</a> to wrap the web app in a native Android shell. Icons at all 5 densities, Arabic locale, splash screen, status bar all configured.</p>
+    </div>
+    <div class="card">
+      <h4>🔐 Phase D — Release readiness</h4>
+      <p>Gradle release signing config that reads from a gitignored <code>keystore.properties</code> file. Feature graphic, 512×512 Play Store icon, privacy policy page, trilingual listing copy — all produced.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================== ARCHITECTURE -->
+<section id="architecture">
+  <h2><span class="num">02</span>Architecture diagram</h2>
+  <p class="lede">How the pieces fit together from source code to a phone's home screen.</p>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#0F3460"/><stop offset="1" stop-color="#1E5081"/></linearGradient>
+        <linearGradient id="g2" x1="0" x2="1"><stop offset="0" stop-color="#8B1A1A"/><stop offset="1" stop-color="#B93838"/></linearGradient>
+        <linearGradient id="g3" x1="0" x2="1"><stop offset="0" stop-color="#2E7D52"/><stop offset="1" stop-color="#4FAE7A"/></linearGradient>
+        <linearGradient id="g4" x1="0" x2="1"><stop offset="0" stop-color="#E8A93B"/><stop offset="1" stop-color="#F0C674"/></linearGradient>
+        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#617791"/>
+        </marker>
+        <filter id="shadow"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.25"/></filter>
+      </defs>
+
+      <!-- Row 1: Source -->
+      <g filter="url(#shadow)">
+        <rect x="50" y="40" width="180" height="80" rx="10" fill="url(#g1)"/>
+        <text x="140" y="72" text-anchor="middle" fill="#fff" font-family="Inter" font-weight="700" font-size="16">Web sources</text>
+        <text x="140" y="95" text-anchor="middle" fill="#B8CBE3" font-family="JetBrains Mono" font-size="11">index.html · app.js</text>
+        <text x="140" y="110" text-anchor="middle" fill="#B8CBE3" font-family="JetBrains Mono" font-size="11">style.css · manifest.json</text>
+      </g>
+
+      <g filter="url(#shadow)">
+        <rect x="360" y="40" width="180" height="80" rx="10" fill="url(#g1)"/>
+        <text x="450" y="72" text-anchor="middle" fill="#fff" font-family="Inter" font-weight="700" font-size="16">Logo asset</text>
+        <text x="450" y="95" text-anchor="middle" fill="#B8CBE3" font-family="JetBrains Mono" font-size="11">workshop-logos</text>
+        <text x="450" y="110" text-anchor="middle" fill="#B8CBE3" font-family="JetBrains Mono" font-size="11">(GitHub repo)</text>
+      </g>
+
+      <g filter="url(#shadow)">
+        <rect x="670" y="40" width="180" height="80" rx="10" fill="url(#g1)"/>
+        <text x="760" y="72" text-anchor="middle" fill="#fff" font-family="Inter" font-weight="700" font-size="16">Capacitor CLI</text>
+        <text x="760" y="95" text-anchor="middle" fill="#B8CBE3" font-family="JetBrains Mono" font-size="11">npx cap init</text>
+        <text x="760" y="110" text-anchor="middle" fill="#B8CBE3" font-family="JetBrains Mono" font-size="11">npx cap add android</text>
+      </g>
+
+      <!-- Arrows converging -->
+      <line x1="140" y1="125" x2="430" y2="165" stroke="#617791" stroke-width="2" marker-end="url(#arrow)"/>
+      <line x1="450" y1="125" x2="450" y2="165" stroke="#617791" stroke-width="2" marker-end="url(#arrow)"/>
+      <line x1="760" y1="125" x2="470" y2="165" stroke="#617791" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <!-- Row 2: www/ bundle -->
+      <g filter="url(#shadow)">
+        <rect x="310" y="170" width="280" height="70" rx="10" fill="url(#g2)"/>
+        <text x="450" y="200" text-anchor="middle" fill="#fff" font-family="Inter" font-weight="700" font-size="16">Capacitor project</text>
+        <text x="450" y="225" text-anchor="middle" fill="#F6D5D5" font-family="JetBrains Mono" font-size="11">www/ · android/ · capacitor.config.json</text>
+      </g>
+
+      <line x1="450" y1="245" x2="450" y2="285" stroke="#617791" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <!-- Row 3: Gradle -->
+      <g filter="url(#shadow)">
+        <rect x="310" y="290" width="280" height="90" rx="10" fill="url(#g3)"/>
+        <text x="450" y="320" text-anchor="middle" fill="#fff" font-family="Inter" font-weight="700" font-size="16">Gradle build</text>
+        <text x="450" y="345" text-anchor="middle" fill="#DDF0E2" font-family="JetBrains Mono" font-size="11">Android SDK · JDK 21 · AGP</text>
+        <text x="450" y="365" text-anchor="middle" fill="#DDF0E2" font-family="JetBrains Mono" font-size="11">./gradlew assembleDebug | bundleRelease</text>
+      </g>
+
+      <line x1="380" y1="385" x2="230" y2="425" stroke="#617791" stroke-width="2" marker-end="url(#arrow)"/>
+      <line x1="520" y1="385" x2="670" y2="425" stroke="#617791" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <!-- Row 4: Outputs -->
+      <g filter="url(#shadow)">
+        <rect x="60" y="430" width="310" height="85" rx="10" fill="url(#g4)"/>
+        <text x="215" y="460" text-anchor="middle" fill="#3B2A0F" font-family="Inter" font-weight="700" font-size="16">app-debug.apk (4.1 MB)</text>
+        <text x="215" y="482" text-anchor="middle" fill="#3B2A0F" font-family="Inter" font-size="12">→ Install on emulator / phone via adb</text>
+        <text x="215" y="502" text-anchor="middle" fill="#3B2A0F" font-family="Inter" font-size="12">Good for: dev testing</text>
+      </g>
+
+      <g filter="url(#shadow)">
+        <rect x="540" y="430" width="310" height="85" rx="10" fill="url(#g4)"/>
+        <text x="695" y="460" text-anchor="middle" fill="#3B2A0F" font-family="Inter" font-weight="700" font-size="16">app-release.aab (3.0 MB)</text>
+        <text x="695" y="482" text-anchor="middle" fill="#3B2A0F" font-family="Inter" font-size="12">→ Upload to Play Console</text>
+        <text x="695" y="502" text-anchor="middle" fill="#3B2A0F" font-family="Inter" font-size="12">Needs: upload keystore</text>
+      </g>
+
+      <!-- Row 5: destination -->
+      <g>
+        <text x="450" y="545" text-anchor="middle" fill="#9AB0C7" font-family="Inter" font-size="13">↓ Google Play Store (Internal → Production) ↓</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- ======================================================== PHASES -->
+<section id="phases">
+  <h2><span class="num">03</span>Phases of the work</h2>
+  <p class="lede">Chronological breakdown. Each phase produced a concrete, verifiable deliverable.</p>
+
+  <div class="timeline">
+
+    <div class="phase">
+      <div class="when">Phase 1 · Audit of 54 book apps</div>
+      <h3>Systematic sweep for broken buttons</h3>
+      <p>Two automated audits ran across the <code>koutoub/</code> directory. First pass (shallow) flagged only <code>toggleReadingMode</code> in book 05. A deep recheck was requested; it falsely claimed bugs in books 01 &amp; 08, which we verified don't exist (the checker missed <code>window.foo = function(){}</code> style definitions).</p>
+      <ul>
+        <li><span class="chip ok">fixed</span> <code>05-iyadat-al-ummah/app.js</code> — added missing <code>toggleReadingMode()</code></li>
+        <li><span class="chip ok">fixed</span> <code>04-ayqidh-taqatak/app.js</code> — wired unattached <code>#readingModeBtn</code> via <code>addEventListener</code></li>
+        <li><span class="chip">verified</span> Book 01 (flight-tracker) is clean: <code>cycleTheme</code>, <code>toggleHelp</code>, narrator APIs all live-tested in browser</li>
+      </ul>
+      <div class="kids">
+        <p>Think of <strong>onclick</strong> as a doorbell. We checked every doorbell in 54 houses: did pressing it actually ring a bell somewhere? Two doorbells were <em>disconnected</em> — we wired them up.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="when">Phase 2 · Mobile layout fix</div>
+      <h3>Header overlap at 360px</h3>
+      <p>Opened <code>01-flight-tracker</code> at a phone-sized viewport (360×740). The header's <code>.header-controls</code> was <code>position:absolute</code>, which caused the language flags to overlap the title on narrow screens. Added a <code>@media (max-width:480px)</code> block that switches it to <code>position:static</code>, wraps the inner container, and shrinks buttons from 38px → 32px.</p>
+      <p>Also replaced the text-only "W" logo with the actual wdiy PNG icon downloaded from <a href="https://github.com/abourdim/workshop-logos">abourdim/workshop-logos</a>.</p>
+    </div>
+
+    <div class="phase">
+      <div class="when">Phase 3 · Capacitor scaffolding</div>
+      <h3>Web app → native wrapper</h3>
+      <pre class="code"><span class="cmt"># One-time scaffold — took ~2 min total</span>
+<span class="kw">mkdir -p</span> ~/Desktop/02_choughl/koutoub-android/flight-tracker
+<span class="kw">cd</span> ~/Desktop/02_choughl/koutoub-android/flight-tracker
+<span class="fn">npm</span> init -y
+<span class="fn">npm</span> install @capacitor/core @capacitor/android
+<span class="fn">npm</span> install -D @capacitor/cli
+<span class="fn">npx</span> cap init <span class="str">"Flight Tracker"</span> <span class="str">"org.workshopdiy.flighttracker"</span> --web-dir=www
+<span class="kw">mkdir</span> www && <span class="kw">cp</span> -R ~/Desktop/02_choughl/koutoub/01-flight-tracker/* www/
+<span class="fn">npx</span> cap add android</pre>
+      <p>Icons for all five Android densities (mdpi → xxxhdpi) were fetched from the <code>workshop-logos</code> repo's <code>app_icons/android/</code> folder and placed into the gradle <code>res/mipmap-*</code> dirs. Adaptive icon XML was patched from <code>@color/…</code> to <code>@mipmap/…</code> because we're using PNG backgrounds not colors.</p>
+      <p><code>values-ar/strings.xml</code> added so the app name shows as <span class="ar">متتبع الطائرات</span> when the device locale is Arabic, and <code>Flight Tracker</code> elsewhere.</p>
+    </div>
+
+    <div class="phase">
+      <div class="when">Phase 4 · Toolchain install (non-interactive)</div>
+      <h3>Android Studio + SDK + emulator</h3>
+      <p>Strategy: install everything through Homebrew casks that don't require an interactive sudo prompt. <strong>No JDK needed separately</strong> — Android Studio ships an embedded <a href="https://bell-sw.com/libericajdk/">JetBrains Runtime 21</a>.</p>
+      <pre class="code"><span class="fn">brew</span> install --cask android-studio          <span class="cmt"># ~5 GB, provides embedded JDK 21</span>
+<span class="fn">brew</span> install --cask android-commandlinetools <span class="cmt"># sdkmanager, avdmanager, adb</span>
+
+<span class="cmt"># Accept licences and fetch the SDK components we need</span>
+yes | sdkmanager --licenses
+sdkmanager <span class="str">"platform-tools"</span> <span class="str">"platforms;android-34"</span> <span class="str">"build-tools;34.0.0"</span>
+sdkmanager <span class="str">"emulator"</span> <span class="str">"system-images;android-34;google_apis;x86_64"</span>
+
+<span class="cmt"># Create &amp; launch the emulator</span>
+avdmanager create avd -n flight_tracker_test -k <span class="str">"system-images;android-34;google_apis;x86_64"</span> -d pixel_7
+emulator -avd flight_tracker_test</pre>
+    </div>
+
+    <div class="phase">
+      <div class="when">Phase 5 · First build + install</div>
+      <h3>From gradle → booted APK</h3>
+      <pre class="code"><span class="kw">export</span> JAVA_HOME=<span class="str">"/Applications/Android Studio.app/Contents/jbr/Contents/Home"</span>
+<span class="kw">export</span> ANDROID_HOME=/usr/local/share/android-commandlinetools
+<span class="kw">echo</span> <span class="str">"sdk.dir=$ANDROID_HOME"</span> &gt; android/local.properties
+
+<span class="kw">cd</span> android && ./gradlew assembleDebug
+<span class="cmt"># BUILD SUCCESSFUL in 4m 8s</span>
+
+<span class="fn">adb</span> install app/build/outputs/apk/debug/app-debug.apk
+<span class="fn">adb</span> shell am start -n org.workshopdiy.flighttracker/.MainActivity</pre>
+      <p>First launch on emulator showed the splash (red theme, bismillah, ayah from Surat al-Hadid 57:27), then the home tab with book + author cards, then working tab navigation (home / quiz / sieve / truth).</p>
+    </div>
+
+    <div class="phase">
+      <div class="when">Phase 6 · Release signing</div>
+      <h3>Gradle signingConfigs that read from keystore.properties</h3>
+      <p>Patched <code>android/app/build.gradle</code> so that:</p>
+      <ul>
+        <li>If <code>keystore.properties</code> exists at the android project root, its values populate a <code>release</code> signing config.</li>
+        <li>If not present, <code>./gradlew bundleRelease</code> still works (falls back gracefully — useful for local iteration).</li>
+      </ul>
+      <p>The <code>keystore.properties</code> file is <strong>gitignored</strong> to prevent accidentally committing passwords. An <code>keystore.properties.example</code> template ships as documentation.</p>
+      <div class="blocker">
+        <strong>Remaining action for you:</strong> run <code>keytool -genkey</code> in your terminal to create the upload keystore. This is the only step that literally needs your password. See <a href="#remaining">Remaining blockers</a>.
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="when">Phase 7 · Store-ready assets</div>
+      <h3>Icons, feature graphic, privacy policy, listing copy</h3>
+      <ul>
+        <li><strong>512×512 app icon</strong> — fetched from <code>workshop-logos/app_icons/android/play_store_512.png</code></li>
+        <li><strong>1024×500 feature graphic</strong> — custom HTML+CSS rendered via headless Chrome to PNG</li>
+        <li><strong>Privacy policy</strong> — clean HTML page declaring "no data collected"</li>
+        <li><strong>Listing copy</strong> — short + long descriptions in <strong>Arabic, English, French</strong></li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- ======================================================== TOOLCHAIN -->
+<section id="toolchain">
+  <h2><span class="num">04</span>Toolchain we installed</h2>
+  <p class="lede">Every link opens the official homepage. Everything listed is free.</p>
+
+  <div class="grid grid-2">
+    <div class="tool">
+      <div class="tool-icon">🟢</div>
+      <div class="tool-body">
+        <h4>Node.js 22 · npm 10 <span class="tag">(pre-existing)</span></h4>
+        <p>JavaScript runtime + package manager. Drives the Capacitor CLI.</p>
+        <a href="https://nodejs.org">nodejs.org</a>
+      </div>
+    </div>
+
+    <div class="tool">
+      <div class="tool-icon">⚡</div>
+      <div class="tool-body">
+        <h4>Capacitor 7 <span class="tag">@capacitor/core, /cli, /android</span></h4>
+        <p>Wraps the web app in a native Android container. Same code runs in browser and app.</p>
+        <a href="https://capacitorjs.com">capacitorjs.com</a> · <a href="https://capacitorjs.com/docs">docs</a>
+      </div>
+    </div>
+
+    <div class="tool">
+      <div class="tool-icon">🤖</div>
+      <div class="tool-body">
+        <h4>Android Studio <span class="tag">includes JDK 21 + AGP + GUI</span></h4>
+        <p>Official Google IDE. We use its <em>embedded JDK</em> for builds; we never actually open the GUI in this session.</p>
+        <a href="https://developer.android.com/studio">developer.android.com/studio</a>
+      </div>
+    </div>
+
+    <div class="tool">
+      <div class="tool-icon">📱</div>
+      <div class="tool-body">
+        <h4>Android Command-Line Tools <span class="tag">sdkmanager, avdmanager, adb</span></h4>
+        <p>Lets us install SDK components, create emulator virtual devices, and talk to a running device — all from the terminal.</p>
+        <a href="https://developer.android.com/tools">developer.android.com/tools</a>
+      </div>
+    </div>
+
+    <div class="tool">
+      <div class="tool-icon">🧱</div>
+      <div class="tool-body">
+        <h4>Gradle 8 <span class="tag">bundled with the Android project</span></h4>
+        <p>The build system that actually compiles Java/Kotlin + XML + assets into an APK/AAB. Invoked via <code>./gradlew</code>.</p>
+        <a href="https://gradle.org">gradle.org</a>
+      </div>
+    </div>
+
+    <div class="tool">
+      <div class="tool-icon">🔑</div>
+      <div class="tool-body">
+        <h4>keytool <span class="tag">comes with any JDK</span></h4>
+        <p>Generates the upload keystore that Play Store demands for signed releases. The one thing we couldn't script (password).</p>
+        <a href="https://docs.oracle.com/en/java/javase/21/docs/specs/man/keytool.html">Oracle docs</a>
+      </div>
+    </div>
+
+    <div class="tool">
+      <div class="tool-icon">🌐</div>
+      <div class="tool-body">
+        <h4>Headless Chrome <span class="tag">--headless --screenshot</span></h4>
+        <p>Used once, invisibly, to render our feature graphic HTML at exact 1024×500 → PNG.</p>
+        <a href="https://developer.chrome.com/docs/chromium/headless">Chrome Headless</a>
+      </div>
+    </div>
+
+    <div class="tool">
+      <div class="tool-icon">🍺</div>
+      <div class="tool-body">
+        <h4>Homebrew <span class="tag">(pre-existing)</span></h4>
+        <p>macOS package manager. Fetched Android Studio + command-line tools without needing an interactive installer.</p>
+        <a href="https://brew.sh">brew.sh</a>
+      </div>
+    </div>
+  </div>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff;margin-bottom:10px">Yet-to-install (on your side)</h3>
+  <div class="grid grid-2">
+    <div class="tool">
+      <div class="tool-icon" style="background:linear-gradient(135deg,#4CAF50,#8BC34A)">📲</div>
+      <div class="tool-body">
+        <h4>Google Play Console <span class="tag">$25 one-time fee</span></h4>
+        <p>Publisher account. Create at <a href="https://play.google.com/console">play.google.com/console</a>. Identity verification takes 1–2 days (personal) or ~1 week (organisation).</p>
+      </div>
+    </div>
+
+    <div class="tool">
+      <div class="tool-icon" style="background:linear-gradient(135deg,#6B7280,#9CA3AF)">🔒</div>
+      <div class="tool-body">
+        <h4>Upload keystore <span class="tag">you create, you own</span></h4>
+        <p>A single <code>.keystore</code> file containing the private key that signs every update. Losing it means you can never update this app on Play Store again. Back up immediately.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================== COMMANDS -->
+<section id="commands">
+  <h2><span class="num">05</span>Key commands reference</h2>
+  <p class="lede">Copy-pasteable recipes. Assume working directory is the <code>flight-tracker/</code> project folder.</p>
+
+  <div class="blocker" style="background:rgba(125,178,255,.07); border-left-color:var(--info);">
+    <strong style="color:var(--info)">💡 The easy way:</strong>
+    these commands are all wrapped in <code>./manage.sh</code> which dispatches to a menu
+    appropriate for your OS. See <a href="#manage-sh">section 10</a>. The raw commands below
+    are for reference / when you want to run things manually.
+  </div>
+
+  <h3>Update the web app inside the Android wrapper</h3>
+  <pre class="code"><span class="cmt"># After editing anything in the source book folder (same on every OS)</span>
+<span class="kw">cp</span> -R /path/to/01-flight-tracker/* www/
+<span class="fn">npx</span> cap sync android
+<span class="cmt"># → copies web assets into android/app/src/main/assets/public/</span></pre>
+
+  <h3>Build debug APK (for testing)</h3>
+
+  <div class="os-mac">
+    <pre class="code"><span class="kw">export</span> JAVA_HOME=<span class="str">"/Applications/Android Studio.app/Contents/jbr/Contents/Home"</span>
+<span class="kw">cd</span> android && ./gradlew assembleDebug
+<span class="cmt"># APK at: android/app/build/outputs/apk/debug/app-debug.apk</span></pre>
+  </div>
+
+  <div class="os-linux">
+    <pre class="code"><span class="kw">export</span> JAVA_HOME=<span class="str">"/opt/android-studio/jbr"</span>    <span class="cmt"># adjust for your install</span>
+<span class="kw">cd</span> android && ./gradlew assembleDebug
+<span class="cmt"># APK at: android/app/build/outputs/apk/debug/app-debug.apk</span></pre>
+  </div>
+
+  <div class="os-win">
+    <pre class="code"><span class="kw">export</span> JAVA_HOME=<span class="str">"/c/Program Files/Android/Android Studio/jbr"</span>
+<span class="kw">cd</span> android && cmd //c "gradlew.bat assembleDebug"
+<span class="cmt"># APK at: android\app\build\outputs\apk\debug\app-debug.apk</span></pre>
+  </div>
+
+  <h3>Build signed release AAB (for Play Store)</h3>
+  <p>Prerequisite: create <code>keystore.properties</code> from the <code>.example</code> template.</p>
+  <div class="os-mac">
+    <pre class="code"><span class="kw">cd</span> android && ./gradlew bundleRelease
+<span class="cmt"># AAB at: android/app/build/outputs/bundle/release/app-release.aab</span></pre>
+  </div>
+  <div class="os-linux">
+    <pre class="code"><span class="kw">cd</span> android && ./gradlew bundleRelease
+<span class="cmt"># AAB at: android/app/build/outputs/bundle/release/app-release.aab</span></pre>
+  </div>
+  <div class="os-win">
+    <pre class="code"><span class="kw">cd</span> android && cmd //c "gradlew.bat bundleRelease"
+<span class="cmt"># AAB at: android\app\build\outputs\bundle\release\app-release.aab</span></pre>
+  </div>
+
+  <h3>Create your upload keystore (do this once, YOURSELF)</h3>
+  <p>Same <code>keytool</code> command on every OS. Only the destination path differs:</p>
+  <div class="os-mac">
+    <pre class="code"><span class="kw">mkdir</span> -p ~/keys
+<span class="fn">keytool</span> -genkey -v \
+  -keystore ~/keys/wdiy-upload.keystore \
+  -alias wdiy \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -storetype PKCS12</pre>
+  </div>
+  <div class="os-linux">
+    <pre class="code"><span class="kw">mkdir</span> -p ~/.keys
+<span class="fn">keytool</span> -genkey -v \
+  -keystore ~/.keys/wdiy-upload.keystore \
+  -alias wdiy \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -storetype PKCS12</pre>
+  </div>
+  <div class="os-win">
+    <pre class="code"><span class="cmt"># In git-bash or MSYS2 UCRT64:</span>
+<span class="kw">mkdir</span> -p ~/.keys
+<span class="fn">keytool</span> -genkey -v \
+  -keystore ~/.keys/wdiy-upload.keystore \
+  -alias wdiy \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -storetype PKCS12</pre>
+  </div>
+  <p style="color:var(--text-dim)">You'll be prompted for: password (2×), name, OU, organization, city, state, country code.<br>
+  <strong>BACK UP the .keystore file IMMEDIATELY</strong> — losing it means you can never update the app on Play Store.</p>
+
+  <h3>Start emulator + install APK (same on every OS)</h3>
+  <pre class="code"><span class="fn">emulator</span> -avd flight_tracker_test -no-snapshot -no-audio &amp;
+<span class="cmt"># Wait until boot_completed=1</span>
+<span class="kw">while</span> [ <span class="str">"$(adb shell getprop sys.boot_completed | tr -d '\r')"</span> != <span class="str">"1"</span> ]; <span class="kw">do</span> sleep 5; <span class="kw">done</span>
+
+<span class="fn">adb</span> install android/app/build/outputs/apk/debug/app-debug.apk
+<span class="fn">adb</span> shell am start -n org.workshopdiy.flighttracker/.MainActivity</pre>
+
+  <h3>Install on a real phone via USB</h3>
+  <pre class="code"><span class="cmt"># On phone: Settings → About → tap Build number 7× → Dev Options → enable USB debugging</span>
+<span class="cmt"># Plug in. On Linux you may need udev rules for your vendor.</span>
+<span class="cmt"># On Windows, install your phone vendor's USB driver first.</span>
+<span class="fn">adb</span> devices                                          <span class="cmt"># confirm phone shows up</span>
+<span class="fn">adb</span> install app-debug.apk</pre>
+</section>
+
+<!-- ======================================================== ASSETS -->
+<section id="assets">
+  <h2><span class="num">06</span>Store assets produced</h2>
+  <p class="lede">Everything in <code>store-assets/</code> is ready to upload directly to Play Console.</p>
+
+  <table class="neat">
+    <thead>
+      <tr><th>File</th><th>Type</th><th>Dimensions</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>play-store-icon-512.png</code></td><td>PNG</td><td>512×512</td><td>Play Store app icon (required)</td></tr>
+      <tr><td><code>feature-graphic.png</code></td><td>PNG</td><td>1024×500</td><td>Play Store feature graphic (required)</td></tr>
+      <tr><td><code>feature-graphic.html</code></td><td>HTML</td><td>—</td><td>Source for re-rendering the feature graphic</td></tr>
+      <tr><td><code>privacy.html</code></td><td>HTML</td><td>—</td><td>Privacy policy; host on HTTPS, provide URL to Play Console</td></tr>
+      <tr><td><code>../PLAY_STORE_LISTING.md</code></td><td>Markdown</td><td>—</td><td>AR/EN/FR listing copy + metadata + screenshots checklist</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ======================================================== FILE MAP -->
+<section id="file-map">
+  <h2><span class="num">07</span>File map of the project</h2>
+  <p class="lede">Everything lives at <code>~/Desktop/02_choughl/koutoub-android/flight-tracker/</code>.</p>
+
+  <pre class="code">flight-tracker/
+├── <span class="fn">capacitor.config.json</span>       <span class="cmt"># appId, appName, splash, status bar</span>
+├── <span class="fn">package.json</span>                 <span class="cmt"># Capacitor deps</span>
+├── <span class="fn">PLAY_STORE_LISTING.md</span>        <span class="cmt"># AR/EN/FR store copy</span>
+├── <span class="fn">WORKSHOP.html</span>                <span class="cmt"># ← you are reading this</span>
+│
+├── <span class="fn">manage.sh</span>                    <span class="cmt"># ← entry point: OS-aware dispatcher (asks Android vs iOS on Mac)</span>
+├── manage-macos.sh              <span class="cmt"># macOS → Android menu (Homebrew, /Applications)</span>
+├── manage-linux.sh              <span class="cmt"># Linux → Android menu (apt/dnf/pacman, /opt, KVM)</span>
+├── manage-windows.sh            <span class="cmt"># Windows → Android menu (git-bash/MSYS2, winget/pacman)</span>
+├── manage-ios.sh                <span class="cmt"># macOS → iPhone/iPad menu (Xcode, CocoaPods, simulator)</span>
+│
+├── <span class="kw">www/</span>                          <span class="cmt"># web sources bundled into the app</span>
+│   ├── index.html
+│   ├── app.js · style.css · narrator.js · genius.css · genius.js
+│   ├── manifest.json
+│   └── assets/wdiy-icon.png
+│
+├── <span class="kw">ios/</span>                          <span class="cmt"># Xcode project, generated by `cap add ios` (macOS only)</span>
+│   ├── App/App.xcodeproj         <span class="cmt"># native Xcode project</span>
+│   ├── App/App.xcworkspace       <span class="cmt"># open this after `pod install`</span>
+│   └── App/App/public/           <span class="cmt"># auto-synced copy of www/</span>
+│
+├── <span class="kw">android/</span>                      <span class="cmt"># gradle project, generated by `cap add android`</span>
+│   ├── app/build.gradle          <span class="cmt"># signing config (reads keystore.properties)</span>
+│   ├── app/src/main/
+│   │   ├── AndroidManifest.xml   <span class="cmt"># supportsRtl=true</span>
+│   │   ├── assets/public/        <span class="cmt"># auto-synced copy of www/</span>
+│   │   ├── res/mipmap-*/         <span class="cmt"># icons at 5 densities</span>
+│   │   └── res/values-ar/        <span class="cmt"># Arabic app name</span>
+│   ├── keystore.properties.example
+│   └── .gitignore                <span class="cmt"># blocks *.keystore, keystore.properties</span>
+│
+└── <span class="kw">store-assets/</span>                 <span class="cmt"># Play Console upload bundle</span>
+    ├── play-store-icon-512.png
+    ├── feature-graphic.png
+    ├── feature-graphic.html
+    └── privacy.html</pre>
+</section>
+
+<!-- ======================================================== ANATOMY (NEWBIE) -->
+<section id="anatomy">
+  <h2><span class="num">08</span>Anatomy of an Android app <span style="color:var(--text-faint);font-size:0.7em">(newbie tour)</span></h2>
+  <p class="lede">
+    What actually IS an Android app? What does "compile" mean? What's inside the APK?
+    This section explains every piece of the <code>android/</code> folder — in plain
+    language, with analogies a 10-year-old can follow.
+  </p>
+
+  <div class="kids">
+    <p><strong>An Android app is basically a zipped-up shoebox.</strong> Inside the shoebox: your app's pictures (icons, splash), a rulebook about what the app is allowed to do (manifest), translated texts (for different languages), and a compiled version of the code the phone can run fast. You don't ship the raw source — you ship the packed shoebox.</p>
+  </div>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">1 · Mental model — what is an Android app?</h3>
+  <div class="grid grid-2">
+    <div class="card">
+      <h4>📦 An APK is a ZIP file</h4>
+      <p>Rename <code>app-debug.apk</code> to <code>app-debug.zip</code> → double-click → it extracts. Android just gave the extension a special name. Inside: a standardised folder structure the phone knows how to install.</p>
+    </div>
+    <div class="card">
+      <h4>🧬 An AAB is a <em>smarter</em> ZIP</h4>
+      <p>When uploaded to Play Store, Google unzips the AAB and <strong>makes a custom APK</strong> for each phone (only the icons at your screen density, only your language, only your CPU architecture). User downloads smaller files. Same source, smarter packing.</p>
+    </div>
+    <div class="card">
+      <h4>📜 Every app needs a "manifest"</h4>
+      <p>The <code>AndroidManifest.xml</code> file is like a passport: app name, icon, permissions requested, which screen to open first, what devices it supports. Android refuses to install without one.</p>
+    </div>
+    <div class="card">
+      <h4>✍️ Every app must be signed</h4>
+      <p>Signing = attaching a cryptographic fingerprint that proves "the same author made this". Android uses the signature to recognise updates. Lose your signing key → the phone treats your new version as a different app entirely.</p>
+    </div>
+  </div>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">2 · What's in our <code>android/</code> folder</h3>
+  <p>Generated by <code>npx cap add android</code>. Here's every top-level file/folder, annotated:</p>
+  <pre class="code">android/
+├── <span class="fn">build.gradle</span>              <span class="cmt"># TOP-level build config. Barely used; defers to app/build.gradle.</span>
+├── <span class="fn">settings.gradle</span>           <span class="cmt"># Lists which modules the project has (app, capacitor-android, ...)</span>
+├── <span class="fn">gradle.properties</span>         <span class="cmt"># Tunable knobs (memory limits, AndroidX flags)</span>
+├── <span class="fn">local.properties</span>          <span class="cmt"># YOUR machine's SDK path. NEVER commit this (gitignored).</span>
+├── <span class="fn">gradlew</span>                   <span class="cmt"># Gradle wrapper (bash). Lets ./gradlew work even without Gradle installed.</span>
+├── <span class="fn">gradlew.bat</span>               <span class="cmt"># Same wrapper, for Windows cmd.</span>
+├── <span class="fn">keystore.properties</span>       <span class="cmt"># YOUR signing config (gitignored). Template: .example sibling.</span>
+│
+├── <span class="kw">gradle/</span>
+│   └── wrapper/              <span class="cmt"># Pinned Gradle version the wrapper downloads on first run</span>
+│
+├── <span class="kw">app/</span>                      <span class="cmt"># THE MAIN MODULE — your app itself</span>
+│   ├── build.gradle          <span class="cmt"># App-specific: versionCode, versionName, signingConfigs, dependencies</span>
+│   ├── proguard-rules.pro    <span class="cmt"># Code-shrinking/obfuscation rules (we leave minifyEnabled=false)</span>
+│   ├── capacitor.build.gradle<span class="cmt"># Capacitor's contribution to app's gradle (Java version, etc.)</span>
+│   └── src/main/
+│       ├── <span class="fn">AndroidManifest.xml</span> <span class="cmt"># passport (name, icon, launcher activity, RTL support)</span>
+│       ├── java/…/MainActivity.java <span class="cmt"># the entry point — a 5-line Java class that hosts a WebView</span>
+│       ├── <span class="kw">res/</span>              <span class="cmt"># Android resources (compiled at build time)</span>
+│       │   ├── mipmap-mdpi/ic_launcher.png     <span class="cmt"># launcher icon, phone-density</span>
+│       │   ├── mipmap-hdpi/...                 <span class="cmt"># ...and at 4 more densities for sharper icons</span>
+│       │   ├── mipmap-xhdpi/...
+│       │   ├── mipmap-xxhdpi/...
+│       │   ├── mipmap-xxxhdpi/...
+│       │   ├── values/strings.xml              <span class="cmt"># default (English): app name, activity title</span>
+│       │   ├── values-ar/strings.xml           <span class="cmt"># Arabic override — Android auto-picks by device locale</span>
+│       │   ├── values/styles.xml               <span class="cmt"># theme: status bar color, splash screen tint</span>
+│       │   ├── layout/activity_main.xml        <span class="cmt"># the XML layout for the one activity (just hosts the WebView)</span>
+│       │   └── drawable/splash.png             <span class="cmt"># splash screen image</span>
+│       └── <span class="kw">assets/public/</span>    <span class="cmt"># ← OUR WEB APP lives here, synced from www/</span>
+│           ├── index.html                      <span class="cmt"># This is what the WebView opens on launch</span>
+│           ├── app.js · style.css · ...        <span class="cmt"># exactly the files you wrote in flight-tracker</span>
+│           └── assets/wdiy-icon.png
+│
+├── <span class="kw">capacitor-android/</span>       <span class="cmt"># Capacitor's runtime — the WebView bridge code</span>
+├── <span class="kw">capacitor-cordova-android-plugins/</span>
+└── <span class="kw">.gradle/</span>                 <span class="cmt"># Gradle's own cache (gitignored; safe to delete)</span></pre>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">3 · The five files you'll actually edit</h3>
+  <table class="neat">
+    <thead><tr><th>File</th><th>What you edit</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td><code>www/*</code></td><td>anything in the web app</td><td>Source of truth for the UI. Synced into <code>android/app/src/main/assets/public/</code> by <code>npx cap sync android</code>.</td></tr>
+      <tr><td><code>android/app/build.gradle</code></td><td><code>versionCode</code> &amp; <code>versionName</code></td><td>Bump these for every new release. Play Store rejects uploads with the same <code>versionCode</code>.</td></tr>
+      <tr><td><code>android/app/src/main/AndroidManifest.xml</code></td><td>permissions, activity flags</td><td>Rarely for a Capacitor PWA. Add entries here if you install a native plugin that needs camera/location/etc.</td></tr>
+      <tr><td><code>android/app/src/main/res/values-*/strings.xml</code></td><td>app name per locale</td><td>E.g. <code>values-ar/</code> for Arabic, <code>values-fr/</code> for French.</td></tr>
+      <tr><td><code>capacitor.config.json</code> (project root)</td><td>splash color, status bar, app id</td><td>One file controls both platforms (Android + iOS).</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">4 · What "compiling" actually means</h3>
+  <div class="kids">
+    <p><strong>Compiling = translating.</strong> Your code is written for humans. The phone's brain is a special chip that only reads a different language (machine code). "Compile" is the translation step. Our web app (HTML/CSS/JS) isn't compiled — it's carried along as-is and interpreted at runtime by the WebView, like a book you read aloud instead of memorising.</p>
+  </div>
+
+  <p>What happens when you run <code>./gradlew assembleDebug</code>:</p>
+  <ol style="color:var(--text-dim); line-height:1.7;">
+    <li><strong>Gradle reads the build scripts</strong> — <code>settings.gradle</code>, <code>build.gradle</code>, <code>app/build.gradle</code>. Figures out what to build and in what order.</li>
+    <li><strong>Downloads dependencies</strong> (first run only) — Capacitor runtime, AndroidX libraries, etc. Cached to <code>~/.gradle/caches/</code>.</li>
+    <li><strong>Compiles Java source</strong> (<code>MainActivity.java</code>) → <code>.class</code> files (JVM bytecode). The <code>javac</code> compiler.</li>
+    <li><strong>Compiles Kotlin source</strong> (none in our project, but Capacitor's plugins may use it).</li>
+    <li><strong>Dexes</strong> — converts <code>.class</code> files to <code>.dex</code> (<em>Dalvik Executable</em>, Android's optimised bytecode format). The phone's ART runtime loads this.</li>
+    <li><strong>Compiles resources</strong> — XML files (layouts, strings) get converted to a compact binary format. Images get optimised. The <code>aapt2</code> tool does this.</li>
+    <li><strong>Packages</strong> — zips up classes.dex + resources.arsc + <code>res/</code> + <code>assets/</code> into a single <code>.apk</code> file.</li>
+    <li><strong>Signs</strong> — attaches a cryptographic signature using the debug keystore (or your release keystore).</li>
+    <li><strong>Aligns</strong> — rearranges bytes inside the APK so the phone can memory-map them efficiently (<code>zipalign</code>).</li>
+  </ol>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">5 · Peek inside a real APK</h3>
+  <p>An APK is just a ZIP. Try this:</p>
+  <pre class="code"><span class="cmt"># Copy the APK somewhere, rename, extract</span>
+<span class="kw">cp</span> android/app/build/outputs/apk/debug/app-debug.apk /tmp/apk.zip
+<span class="kw">cd</span> /tmp && <span class="fn">unzip</span> -l apk.zip | head -20</pre>
+  <p>You'll see something like:</p>
+  <pre class="code">Length      Name
+--------    ----
+  <span class="fn">7842</span>    AndroidManifest.xml        <span class="cmt"># binary-encoded, not text anymore</span>
+ <span class="fn">412983</span>    classes.dex                <span class="cmt"># ALL compiled Java/Kotlin code in one file</span>
+  <span class="fn">98472</span>    resources.arsc             <span class="cmt"># compiled string resources, colors, dimensions</span>
+   <span class="fn">5103</span>    META-INF/MANIFEST.MF       <span class="cmt"># signature metadata</span>
+   <span class="fn">4822</span>    META-INF/CERT.RSA          <span class="cmt"># your signing certificate + signature blob</span>
+   <span class="fn">2841</span>    res/mipmap-xxxhdpi/ic_launcher.png
+  ...
+ <span class="fn">245172</span>    assets/public/index.html   <span class="cmt"># ← our flight-tracker!</span>
+  <span class="fn">89314</span>    assets/public/app.js       <span class="cmt"># ← untouched; readable with any text editor</span>
+  <span class="fn">45210</span>    assets/public/style.css</pre>
+  <p>Notice <code>assets/public/*</code> are your original web files — <strong>not compiled, not obfuscated</strong>. Someone can unzip the APK and read your JavaScript. For a private/commercial app you'd want to minify/obfuscate before building, but for an open educational app like flight-tracker it's fine and desirable.</p>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">6 · APK vs AAB — two outputs, two purposes</h3>
+  <table class="neat">
+    <thead><tr><th></th><th>APK (.apk)</th><th>AAB (.aab)</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Full name</strong></td><td>Android Package</td><td>Android App Bundle</td></tr>
+      <tr><td><strong>Contains everything?</strong></td><td>Yes — every icon density, every language, every CPU arch</td><td>Yes, but organised so Google can split it</td></tr>
+      <tr><td><strong>Install directly on phone?</strong></td><td>Yes (<code>adb install</code>, sideload)</td><td>No — needs Google Play or <code>bundletool</code></td></tr>
+      <tr><td><strong>Ship to Play Store?</strong></td><td>No (deprecated)</td><td>Yes (required since 2021)</td></tr>
+      <tr><td><strong>Our file size</strong></td><td>4.1 MB</td><td>3.0 MB (same content, more compressed)</td></tr>
+      <tr><td><strong>User download size</strong></td><td>4.1 MB for everyone</td><td>~2.5 MB (Google trims unused icons/locales/arch per device)</td></tr>
+      <tr><td><strong>Build command</strong></td><td><code>./gradlew assembleDebug</code></td><td><code>./gradlew bundleRelease</code></td></tr>
+    </tbody>
+  </table>
+  <p><strong>Rule of thumb:</strong> APK for dev/sideloading, AAB for Play Store.</p>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">7 · Signing — the lock on the shoebox</h3>
+  <p>Every APK/AAB must be signed. The signature proves "this build came from the same author as previous builds".</p>
+  <div class="grid grid-2">
+    <div class="card">
+      <h4>🔓 Debug keystore</h4>
+      <p>Android ships with a default keystore at <code>~/.android/debug.keystore</code>. Everyone's Debug keystore is different but Play Store rejects them all. Use only for local dev &amp; sideload.</p>
+    </div>
+    <div class="card">
+      <h4>🔒 Release (upload) keystore</h4>
+      <p>YOU generate this with <code>keytool -genkey</code>. Protect it like a password. Play Store recognises YOUR signature as yours forever. Lose it → you can never update this app again.</p>
+    </div>
+    <div class="card">
+      <h4>☁️ Play App Signing</h4>
+      <p>Since 2020, Play Store offers to hold the MASTER signing key for you. You upload builds signed with your <em>upload</em> key; Google re-signs them with the true distribution key. Benefit: if you lose your upload key, Google can reset it.</p>
+    </div>
+    <div class="card">
+      <h4>📝 What's actually signed</h4>
+      <p>The entire APK (minus the signature files themselves). Any change — one byte of HTML, one pixel of an icon — invalidates the signature and must be re-signed.</p>
+    </div>
+  </div>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">8 · What <code>adb install</code> actually does</h3>
+  <ol style="color:var(--text-dim); line-height:1.7;">
+    <li><strong>USB bridge</strong> — <code>adb</code> opens a TCP-over-USB channel to the <code>adbd</code> daemon running on the phone (which is why USB debugging must be on).</li>
+    <li><strong>APK transfer</strong> — the file is streamed from your Mac to <code>/data/local/tmp/</code> on the phone.</li>
+    <li><strong>Package Manager</strong> — <code>pm install</code> runs on the phone. It:
+      <ul>
+        <li>verifies the APK signature</li>
+        <li>checks permissions requested in the manifest</li>
+        <li>extracts <code>classes.dex</code> to <code>/data/app/org.workshopdiy.flighttracker/</code></li>
+        <li>optimises the DEX with the phone's ART runtime (creates <code>.oat</code> / <code>.vdex</code> files)</li>
+        <li>copies icons to the right system caches</li>
+        <li>registers the app with the launcher → icon appears</li>
+      </ul>
+    </li>
+    <li><strong>First launch</strong> — tapping the icon sends an <code>Intent</code> to <code>MainActivity</code>; Android allocates memory, spawns a process, runs the activity's <code>onCreate</code>. Our <code>MainActivity</code> just inherits from Capacitor's <code>BridgeActivity</code>, which creates a WebView and loads <code>file:///android_asset/public/index.html</code>. From there, it's your web app.</li>
+  </ol>
+
+  <div class="kids">
+    <p><strong>Recap for workshop:</strong> You wrote a web app (HTML + JS + CSS). Capacitor put it in a shoebox (APK). Android Studio compiled a tiny bit of Java (5 lines, really) that opens a browser window inside the app. Play Store distributes the shoebox. The phone unpacks it and adds an icon. That's the whole journey.</p>
+  </div>
+</section>
+
+<!-- ======================================================== iOS ANATOMY (NEWBIE) -->
+<section id="anatomy-ios">
+  <h2><span class="num">09</span>Anatomy of an iOS app <span style="color:var(--text-faint);font-size:0.7em">(newbie tour)</span></h2>
+  <p class="lede">
+    Mirror of §08, but for iPhone. What's an <code>.ipa</code> really? What does
+    Xcode actually <em>do</em>? Why is iOS signing so much more complicated than
+    Android? Everything in plain language.
+  </p>
+
+  <div class="kids">
+    <p><strong>An iPhone app is a shoebox too</strong>, but the post office (Apple) is picky. You can't just hand them any shoebox — you need a special sticker (certificate) that only Apple issues, and a stamp (provisioning profile) that says exactly which shoeboxes can go to which addresses (iPhones). That's why iOS development feels more ceremonial than Android.</p>
+  </div>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">1 · Mental model — what is an iOS app?</h3>
+  <div class="grid grid-2">
+    <div class="card">
+      <h4>📦 An IPA is a ZIP file</h4>
+      <p>Like APK on Android. Rename <code>MyApp.ipa</code> → <code>MyApp.zip</code> → extract → you'll find a <code>Payload/MyApp.app/</code> folder inside. The <code>.app</code> isn't a file — it's a Finder-disguised directory.</p>
+    </div>
+    <div class="card">
+      <h4>📁 A <code>.app</code> is a <em>bundle</em></h4>
+      <p>Bundles are just folders with a special extension (.app, .framework, .bundle). Finder shows them as single icons but <code>ls</code> reveals the real contents. Universal concept across macOS &amp; iOS.</p>
+    </div>
+    <div class="card">
+      <h4>📜 <code>Info.plist</code> is the manifest</h4>
+      <p>Instead of <code>AndroidManifest.xml</code>, iOS uses <code>Info.plist</code> — a key-value file (XML or binary) listing: bundle ID, display name, version, permissions descriptions, supported orientations, minimum iOS version.</p>
+    </div>
+    <div class="card">
+      <h4>🔏 Code signing is <strong>mandatory</strong></h4>
+      <p>Unlike Android (which tolerates debug keystores), iOS won't run any code unless it's signed by a recognised Apple certificate. Even on your own iPhone. Even in Simulator (but the Simulator cert is automatic).</p>
+    </div>
+  </div>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">2 · What's in our <code>ios/</code> folder</h3>
+  <p>Generated by <code>npx cap add ios</code>. Compared to Android, fewer top-level files but a weirder hierarchy:</p>
+  <pre class="code">ios/
+├── <span class="kw">App/</span>                               <span class="cmt"># the actual Xcode project lives here</span>
+│   ├── <span class="fn">App.xcodeproj/</span>                 <span class="cmt"># the Xcode project bundle (lots of XML inside)</span>
+│   │   ├── project.pbxproj                <span class="cmt"># THE project definition — tracks all files, build settings</span>
+│   │   ├── xcshareddata/                  <span class="cmt"># shared schemes</span>
+│   │   └── xcuserdata/                    <span class="cmt"># per-user state (gitignored)</span>
+│   │
+│   ├── <span class="fn">App.xcworkspace/</span>               <span class="cmt"># ← OPEN THIS one after `pod install`</span>
+│   │                                        <span class="cmt">#   Workspace = project + CocoaPods</span>
+│   │
+│   ├── <span class="fn">Podfile</span>                        <span class="cmt"># CocoaPods dependency list (Capacitor plugins)</span>
+│   ├── <span class="fn">Podfile.lock</span>                   <span class="cmt"># pinned versions (gitignored or committed, team choice)</span>
+│   ├── <span class="kw">Pods/</span>                          <span class="cmt"># downloaded pods (gitignored; `pod install` regenerates)</span>
+│   │
+│   └── <span class="kw">App/</span>                           <span class="cmt"># the app target source — what ends up in the .app bundle</span>
+│       ├── <span class="fn">AppDelegate.swift</span>          <span class="cmt"># tiny entry-point class (~10 lines, wired to Capacitor)</span>
+│       ├── <span class="fn">SceneDelegate.swift</span>        <span class="cmt"># iOS 13+ scene lifecycle (also Capacitor-provided)</span>
+│       ├── <span class="fn">Info.plist</span>                 <span class="cmt"># ← THE MANIFEST. Bundle ID, name, version, permissions</span>
+│       ├── <span class="fn">Main.storyboard</span>            <span class="cmt"># initial view controller (Capacitor's BridgeViewController)</span>
+│       ├── <span class="fn">LaunchScreen.storyboard</span>    <span class="cmt"># the splash screen (native, not web)</span>
+│       ├── <span class="fn">Assets.xcassets/</span>           <span class="cmt"># icons, colors, images (catalog format)</span>
+│       │   ├── AppIcon.appiconset/         <span class="cmt"># ← app icons at every required size</span>
+│       │   └── Splash.imageset/            <span class="cmt"># splash images</span>
+│       ├── <span class="fn">config.xml</span>                 <span class="cmt"># Cordova-style config (Capacitor reads some keys)</span>
+│       ├── <span class="fn">capacitor.config.json</span>      <span class="cmt"># auto-copied from project root on `cap sync`</span>
+│       └── <span class="kw">public/</span>                    <span class="cmt"># ← OUR WEB APP lives here, synced from www/</span>
+│           ├── index.html                  <span class="cmt"># WKWebView loads this on launch</span>
+│           ├── app.js · style.css · ...    <span class="cmt"># same files as Android's assets/public/</span>
+│           └── assets/wdiy-icon.png
+│
+├── <span class="kw">CapApp-SPM/</span>                        <span class="cmt"># Swift Package Manager wrapper for Capacitor</span>
+│   └── Package.swift
+│
+├── <span class="fn">debug.xcconfig</span>                     <span class="cmt"># shared build settings for Debug configuration</span>
+└── <span class="fn">.gitignore</span>                         <span class="cmt"># blocks Pods/, xcuserdata/, build/</span></pre>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">3 · The five places you'll actually edit</h3>
+  <table class="neat">
+    <thead><tr><th>Location</th><th>What you edit</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td><code>www/*</code></td><td>anything in the web app</td><td>Synced into <code>ios/App/App/public/</code> by <code>npx cap sync ios</code>. Same source as Android.</td></tr>
+      <tr><td><code>ios/App/App/Info.plist</code></td><td><code>CFBundleShortVersionString</code> + <code>CFBundleVersion</code></td><td>Bump for every TestFlight / App Store upload. "Version" = user-facing (1.1), "build" = integer (2).</td></tr>
+      <tr><td><code>Assets.xcassets/AppIcon.appiconset</code></td><td>drop in new icon PNGs at required sizes</td><td>iPhone wants 120×120, 180×180, 1024×1024, etc. — Xcode has a GUI editor for this.</td></tr>
+      <tr><td><code>capacitor.config.json</code> (project root)</td><td>splash color, status bar, app id</td><td>Shared with Android. One source of truth.</td></tr>
+      <tr><td><code>Signing &amp; Capabilities</code> in Xcode</td><td>Team, capabilities toggles</td><td>Not a file — a Xcode GUI tab. Pick your Apple Developer team; Xcode generates certs + provisioning profiles automatically.</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">4 · What "compiling" means on iOS</h3>
+  <div class="kids">
+    <p><strong>iOS builds compile more things than Android.</strong> Your app icons, your storyboards, your asset catalogs — all get pre-processed into compact binary formats Apple's runtime can load faster. Your Swift code becomes native ARM64 machine code directly (no bytecode layer like Android's DEX).</p>
+  </div>
+
+  <p>What happens when you hit the ▶ Run button in Xcode (or <code>xcodebuild build</code>):</p>
+  <ol style="color:var(--text-dim); line-height:1.7;">
+    <li><strong>Xcode reads the project</strong> — <code>project.pbxproj</code>, <code>Podfile</code>, all <code>.xcconfig</code> files.</li>
+    <li><strong>Resolves Swift Package Manager &amp; CocoaPods</strong> (incremental — only if something changed).</li>
+    <li><strong>Compiles Swift</strong> — <code>AppDelegate.swift</code>, <code>SceneDelegate.swift</code>, Capacitor's Swift files → <code>.o</code> object files → ARM64 machine code (for device) or x86_64/ARM64 (for simulator). Uses the <code>swiftc</code> compiler.</li>
+    <li><strong>Compiles Objective-C</strong> — some Capacitor plugins are still Obj-C → same <code>.o</code> format.</li>
+    <li><strong>Compiles storyboards</strong> — <code>Main.storyboard</code> and <code>LaunchScreen.storyboard</code> → <code>.storyboardc</code> directory (binary plist).</li>
+    <li><strong>Compiles asset catalog</strong> — <code>Assets.xcassets</code> → a single <code>Assets.car</code> file (optimised image blob).</li>
+    <li><strong>Processes Info.plist</strong> — preprocessor runs, variables substituted, converted to binary plist.</li>
+    <li><strong>Links</strong> — all <code>.o</code> files + frameworks → single Mach-O executable named <code>App</code>.</li>
+    <li><strong>Copies resources</strong> — our <code>public/</code> web files, <code>Assets.car</code>, storyboards, embedded provisioning profile — all copied into <code>App.app/</code>.</li>
+    <li><strong>Signs the bundle</strong> — <code>codesign</code> tool attaches the signature using your Apple developer certificate + embeds the provisioning profile.</li>
+    <li><strong>Validates</strong> — Xcode runs <code>codesign --verify</code>, checks entitlements match provisioning profile.</li>
+  </ol>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">5 · Peek inside a real IPA</h3>
+  <p>An IPA is a ZIP. Try this after you archive &amp; export:</p>
+  <pre class="code"><span class="cmt"># Rename, extract</span>
+<span class="kw">cp</span> ~/Desktop/flight-tracker.ipa /tmp/ipa.zip
+<span class="kw">cd</span> /tmp && <span class="fn">unzip</span> ipa.zip</pre>
+  <p>You'll get:</p>
+  <pre class="code">Payload/
+└── App.app/                              <span class="cmt"># the bundle</span>
+    ├── App                               <span class="cmt"># Mach-O executable (ARM64 binary)</span>
+    ├── Info.plist                        <span class="cmt"># binary-encoded manifest</span>
+    ├── Assets.car                        <span class="cmt"># all your icons + images, compiled</span>
+    ├── PkgInfo                           <span class="cmt"># 8-byte type identifier (legacy)</span>
+    ├── embedded.mobileprovision          <span class="cmt"># your provisioning profile (signed by Apple)</span>
+    ├── _CodeSignature/
+    │   └── CodeResources                 <span class="cmt"># hashes of every file in the bundle</span>
+    ├── Main.storyboardc/                 <span class="cmt"># compiled storyboard</span>
+    ├── LaunchScreen.storyboardc/
+    ├── <span class="fn">public/</span>                           <span class="cmt"># ← OUR WEB APP, untouched HTML/CSS/JS</span>
+    │   ├── index.html
+    │   ├── app.js · style.css · ...
+    │   └── assets/wdiy-icon.png
+    └── Frameworks/                       <span class="cmt"># Capacitor + plugin frameworks</span>
+        ├── Capacitor.framework/
+        └── CapacitorCordova.framework/</pre>
+  <p>Just like Android, your web files are uncompiled and readable. Capacitor bundles its runtime as a <code>.framework</code> (dynamic library) next to the executable.</p>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">6 · Four kinds of iOS builds</h3>
+  <table class="neat">
+    <thead><tr><th>Build type</th><th>Where</th><th>Signed with</th><th>Installs on</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Debug</strong> (simulator)</td><td><code>xcodebuild -configuration Debug</code></td><td>Apple Development (auto)</td><td>iPhone Simulator</td></tr>
+      <tr><td><strong>Debug</strong> (device)</td><td>Xcode → Run ▶ on your plugged-in iPhone</td><td>Apple Development cert + dev provisioning</td><td>Your registered dev devices (7 days if free Apple ID)</td></tr>
+      <tr><td><strong>Archive</strong></td><td>Product → Archive in Xcode</td><td>Apple Distribution cert</td><td>produces <code>.xcarchive</code> — not installable directly</td></tr>
+      <tr><td><strong>Ad Hoc IPA</strong></td><td>Distribute App → Ad Hoc</td><td>Apple Distribution + ad-hoc provisioning</td><td>UDID-registered devices (max 100)</td></tr>
+      <tr><td><strong>App Store IPA</strong></td><td>Distribute App → App Store Connect</td><td>Apple Distribution + app-store provisioning</td><td>Uploaded to App Store Connect, distributed via TestFlight → App Store</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">7 · Signing &amp; provisioning — the hard part</h3>
+  <p>Apple requires <strong>four things</strong> for every signed build, all of which Xcode can usually auto-generate if you click "Automatically manage signing":</p>
+  <div class="grid grid-2">
+    <div class="card">
+      <h4>1. Developer certificate</h4>
+      <p>A public/private key pair issued by Apple. The private key lives in your Mac's Keychain; the public key sits in Apple's servers. Tied to your Apple ID / team.</p>
+      <p class="meta">Types: Apple Development (for dev builds) · Apple Distribution (for App Store + TestFlight)</p>
+    </div>
+    <div class="card">
+      <h4>2. App ID</h4>
+      <p>A bundle identifier (e.g. <code>org.workshopdiy.flighttracker</code>) registered in your Apple Developer account. Must exactly match the <code>CFBundleIdentifier</code> in <code>Info.plist</code>.</p>
+    </div>
+    <div class="card">
+      <h4>3. Provisioning profile</h4>
+      <p>A file Apple signs that lists: <em>this app ID × this certificate × these devices (or "App Store")</em>. Embedded into the IPA as <code>embedded.mobileprovision</code>. The iPhone's OS checks it before allowing launch.</p>
+      <p class="meta">Types: Development · Ad Hoc · App Store · Enterprise</p>
+    </div>
+    <div class="card">
+      <h4>4. Entitlements</h4>
+      <p>A file listing which capabilities the app uses (Push, HealthKit, iCloud, etc.). Must match what the provisioning profile allows. For our simple Flight Tracker: no special entitlements.</p>
+    </div>
+  </div>
+  <p style="margin-top:16px"><strong>In Xcode → target → Signing &amp; Capabilities tab</strong>, tick <em>"Automatically manage signing"</em> and pick your Team. Xcode requests the cert from Apple, creates the app ID, generates the profile, and embeds everything. The only time you touch this manually is for enterprise / multi-team / CI scenarios.</p>
+
+  <div class="blocker">
+    <strong>Free Apple ID limitation:</strong> You can sign &amp; install on your own device without paying $99, but the certificate expires in <strong>7 days</strong> and you can't upload to App Store Connect or TestFlight. Paid membership → 1-year certs + App Store access.
+  </div>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">8 · What happens when installing</h3>
+  <div class="grid grid-2">
+    <div class="card">
+      <h4>🖥️ Via Xcode (dev build)</h4>
+      <ol style="font-size:.88em; color:var(--text-dim); margin:6px 0 0 18px;">
+        <li>Xcode builds + signs with your dev cert</li>
+        <li>Transfers bundle to device via USB</li>
+        <li>iOS checks signature + provisioning profile</li>
+        <li>On first install: iPhone asks you to trust the dev cert (Settings → General → VPN &amp; Device Management)</li>
+        <li>App installs, icon appears</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h4>✈️ Via TestFlight</h4>
+      <ol style="font-size:.88em; color:var(--text-dim); margin:6px 0 0 18px;">
+        <li>You Archive + Upload to App Store Connect</li>
+        <li>Apple re-signs with their distribution cert</li>
+        <li>Build "processes" for 5–30 min</li>
+        <li>Testers get an email invite</li>
+        <li>Tester opens TestFlight app → taps Install</li>
+        <li>App installs like any App Store app</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h4>🏪 Via App Store (after review)</h4>
+      <ol style="font-size:.88em; color:var(--text-dim); margin:6px 0 0 18px;">
+        <li>Apple reviews (24–48h typically)</li>
+        <li>If approved, build moves to "Ready for Sale"</li>
+        <li>You (or Apple automatically) release it</li>
+        <li>Appears in App Store search globally</li>
+        <li>Anyone can install</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h4>🔐 What the phone verifies on launch</h4>
+      <ol style="font-size:.88em; color:var(--text-dim); margin:6px 0 0 18px;">
+        <li>Signature chain: cert → Apple root CA</li>
+        <li>Cert not revoked</li>
+        <li>Provisioning profile not expired</li>
+        <li>Device UDID in profile (dev/ad-hoc only)</li>
+        <li>Entitlements match profile</li>
+        <li>If all pass → spawn process, call <code>UIApplicationMain</code></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="kids" style="margin-top:20px">
+    <p><strong>Recap:</strong> iOS apps are stricter because Apple controls both the hardware and the store. Every app that ever runs on any iPhone has been signed by a cert that traces back to Apple, and Apple decides who gets certificates. That's why the Play Store review is 2–7 days and App Store is 24–48h — Apple pre-filters developers at the door, Google pre-filters apps at the checkout.</p>
+  </div>
+</section>
+
+<!-- ======================================================== REMAINING -->
+<section id="remaining">
+  <h2><span class="num">10</span>Remaining blockers</h2>
+  <p class="lede">Everything that legally or practically requires your personal input.</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <h4><span class="err-dot"></span>Create upload keystore</h4>
+      <p class="meta">You run: <code>keytool -genkey -v -keystore ~/keys/wdiy-upload.keystore ...</code></p>
+      <p>Interactive password prompts — cannot be automated. <strong>Back up the .keystore file</strong> to encrypted storage immediately after creation.</p>
+    </div>
+    <div class="card">
+      <h4><span class="err-dot"></span>Register Play Console</h4>
+      <p class="meta"><a href="https://play.google.com/console">play.google.com/console</a></p>
+      <p>$25 one-time. Identity verification. Decide personal vs. organisation account.</p>
+    </div>
+    <div class="card">
+      <h4><span class="warn-dot"></span>Host privacy.html on HTTPS</h4>
+      <p class="meta">GitHub Pages is the easiest free option.</p>
+      <p>Play Console requires a public URL for the privacy policy, even if the app collects no data.</p>
+    </div>
+    <div class="card">
+      <h4><span class="warn-dot"></span>Capture phone screenshots</h4>
+      <p class="meta">Home · Sieve · Quiz · Women's Rights tabs</p>
+      <p>Real phone is cleaner; emulator is possible but slow on Intel Mac. Minimum 2 required.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================== WALKTHROUGH -->
+<section id="walkthrough">
+  <h2><span class="num">11</span>Step-by-step walkthrough (follow along)</h2>
+  <p class="lede">
+    Start from nothing. End with a real Android app on an emulator. Every command
+    below is copy-pasteable. Every expected output is noted. If something differs,
+    stop and check — don't skip ahead.
+  </p>
+
+  <div class="kids">
+    <p><strong>Before you start</strong>: you need a Mac (macOS 13+), <a href="https://brew.sh">Homebrew</a> installed, about 8 GB of free disk space, and ~45 minutes of active time. The computer will do some long downloads — that's normal.</p>
+  </div>
+
+  <div class="timeline">
+
+    <!-- STEP 1 -->
+    <div class="phase">
+      <div class="when">Step 1 · ~5 min · one-time per Mac</div>
+      <h3>Check what you already have</h3>
+      <p>Open <strong>Terminal</strong> (⌘+Space → "Terminal"). Run these to see what's already installed:</p>
+      <pre class="code"><span class="fn">node</span> --version    <span class="cmt"># want v18 or newer</span>
+<span class="fn">npm</span> --version     <span class="cmt"># want v9 or newer</span>
+<span class="fn">brew</span> --version    <span class="cmt"># want any version</span>
+<span class="fn">git</span> --version     <span class="cmt"># want any version</span></pre>
+      <p>If any command says "command not found", install the missing one:</p>
+      <ul>
+        <li><strong>Missing brew</strong> → paste the install command from <a href="https://brew.sh">brew.sh</a></li>
+        <li><strong>Missing node/npm</strong> → <code>brew install node</code></li>
+        <li><strong>Missing git</strong> → <code>brew install git</code> (macOS usually ships it already)</li>
+      </ul>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="phase">
+      <div class="when">Step 2 · ~20 min · one-time per machine</div>
+      <h3>Install Android Studio + command-line tools</h3>
+      <p>Android Studio bundles the Java runtime we need — no separate JDK install on any OS.</p>
+
+      <div class="os-mac">
+        <pre class="code"><span class="fn">brew</span> install --cask android-studio
+<span class="fn">brew</span> install --cask android-commandlinetools</pre>
+        <p>After: <code>/Applications/Android Studio.app</code> exists; <code>sdkmanager adb avdmanager</code> in PATH.</p>
+      </div>
+
+      <div class="os-linux">
+        <p>Use your distro's package manager for the basics, then download Android Studio as a tarball:</p>
+        <pre class="code"><span class="cmt"># Debian / Ubuntu</span>
+<span class="kw">sudo</span> apt-get install -y nodejs npm git curl unzip openjdk-17-jdk
+
+<span class="cmt"># Fedora / RHEL</span>
+<span class="kw">sudo</span> dnf install -y nodejs npm git curl unzip java-17-openjdk-devel
+
+<span class="cmt"># Arch</span>
+<span class="kw">sudo</span> pacman -S nodejs npm git curl unzip jdk17-openjdk
+
+<span class="cmt"># Android Studio — download tarball, extract to /opt</span>
+<span class="fn">wget</span> https://redirector.gvt1.com/edgedl/android/studio/ide-zips/latest/android-studio-latest-linux.tar.gz
+<span class="kw">sudo</span> tar -xzf android-studio-latest-linux.tar.gz -C /opt
+<span class="cmt"># Launch once:</span>
+/opt/android-studio/bin/studio.sh</pre>
+        <p>Or skip the GUI entirely — command-line tools only:</p>
+        <pre class="code"><span class="fn">wget</span> https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+<span class="kw">mkdir</span> -p ~/Android/Sdk/cmdline-tools
+<span class="fn">unzip</span> commandlinetools-linux-*.zip -d ~/Android/Sdk/cmdline-tools
+<span class="kw">mv</span> ~/Android/Sdk/cmdline-tools/cmdline-tools ~/Android/Sdk/cmdline-tools/latest</pre>
+      </div>
+
+      <div class="os-win">
+        <p>You need <strong>git-bash</strong> (from <a href="https://git-scm.com/download/win">Git for Windows</a>) OR <strong>MSYS2 UCRT64</strong> (from <a href="https://www.msys2.org">msys2.org</a>) as your shell.</p>
+
+        <p><strong>In MSYS2 UCRT64 shell:</strong></p>
+        <pre class="code"><span class="fn">pacman</span> -Syu
+<span class="fn">pacman</span> -S mingw-w64-ucrt-x86_64-nodejs \
+          mingw-w64-ucrt-x86_64-jdk-openjdk \
+          git unzip curl rsync</pre>
+
+        <p><strong>Or in git-bash</strong> (no package manager — use winget from <code>cmd</code>):</p>
+        <pre class="code"><span class="fn">winget</span> install OpenJS.NodeJS
+<span class="fn">winget</span> install Google.AndroidStudio
+<span class="cmt"># Git is already there — you're in git-bash</span></pre>
+
+        <p>Android Studio isn't in pacman — always download from <a href="https://developer.android.com/studio">developer.android.com/studio</a>. Install into <code>C:\Program Files\Android\Android Studio\</code> (default). Run it once so it downloads the SDK to <code>%LOCALAPPDATA%\Android\Sdk</code>.</p>
+      </div>
+
+      <div class="kids">
+        <p><strong>Why two tools?</strong> Android Studio is the big friendly app with an icon. The command-line tools are invisible helpers the terminal uses. We'll mostly use the helpers; the big app is just for the embedded Java.</p>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="phase">
+      <div class="when">Step 3 · ~10 min · one-time per machine</div>
+      <h3>Configure environment + accept licenses</h3>
+      <p>Android tools need to know where Java and the SDK live. Set these variables in your shell's startup file.</p>
+
+      <div class="os-mac">
+        <p>Add to <code>~/.zshrc</code>:</p>
+        <pre class="code"><span class="kw">export</span> JAVA_HOME=<span class="str">"/Applications/Android Studio.app/Contents/jbr/Contents/Home"</span>
+<span class="kw">export</span> ANDROID_HOME=<span class="str">"/usr/local/share/android-commandlinetools"</span>
+<span class="kw">export</span> PATH=<span class="str">"$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"</span>
+
+<span class="fn">source</span> ~/.zshrc</pre>
+      </div>
+
+      <div class="os-linux">
+        <p>Add to <code>~/.bashrc</code> (or <code>~/.zshrc</code>):</p>
+        <pre class="code"><span class="kw">export</span> JAVA_HOME=<span class="str">"/opt/android-studio/jbr"</span>    <span class="cmt"># adjust if installed elsewhere</span>
+<span class="kw">export</span> ANDROID_HOME=<span class="str">"$HOME/Android/Sdk"</span>
+<span class="kw">export</span> PATH=<span class="str">"$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"</span>
+
+<span class="fn">source</span> ~/.bashrc</pre>
+        <p>For fast emulator performance, add yourself to the <code>kvm</code> group (log out/in after):</p>
+        <pre class="code"><span class="kw">sudo</span> usermod -aG kvm $USER</pre>
+      </div>
+
+      <div class="os-win">
+        <p>Add to <code>~/.bashrc</code> in git-bash or MSYS2:</p>
+        <pre class="code"><span class="kw">export</span> JAVA_HOME=<span class="str">"/c/Program Files/Android/Android Studio/jbr"</span>
+<span class="kw">export</span> ANDROID_HOME=<span class="str">"/c/Users/$USER/AppData/Local/Android/Sdk"</span>
+<span class="kw">export</span> PATH=<span class="str">"$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"</span>
+
+<span class="fn">source</span> ~/.bashrc</pre>
+        <p>For fast emulator performance, enable <strong>Windows Hypervisor Platform</strong>: Start → "Turn Windows features on or off" → tick <em>Windows Hypervisor Platform</em> → reboot.</p>
+      </div>
+
+      <p>Now accept Google's SDK licenses and fetch the components we need (same on all OSes):</p>
+      <pre class="code"><span class="fn">yes</span> | sdkmanager --licenses             <span class="cmt"># answer "y" to everything</span>
+<span class="fn">sdkmanager</span> <span class="str">"platform-tools"</span> <span class="str">"platforms;android-34"</span> <span class="str">"build-tools;34.0.0"</span>
+<span class="fn">sdkmanager</span> <span class="str">"emulator"</span> <span class="str">"system-images;android-34;google_apis;x86_64"</span></pre>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="phase">
+      <div class="when">Step 4 · ~2 min · per new project</div>
+      <h3>Scaffold a Capacitor project</h3>
+      <pre class="code"><span class="cmt"># Pick a folder for the project</span>
+<span class="kw">mkdir</span> -p ~/my-android-app
+<span class="kw">cd</span> ~/my-android-app
+
+<span class="cmt"># Create npm project + install Capacitor</span>
+<span class="fn">npm</span> init -y
+<span class="fn">npm</span> install @capacitor/core @capacitor/android
+<span class="fn">npm</span> install -D @capacitor/cli
+
+<span class="cmt"># Initialize Capacitor — pick your own app name and reverse-domain id</span>
+<span class="fn">npx</span> cap init <span class="str">"My App"</span> <span class="str">"com.example.myapp"</span> --web-dir=www</pre>
+      <div class="kids">
+        <p>The second argument <code>com.example.myapp</code> is like a phone number for your app — it must be unique in the whole Play Store. Use your own domain backwards (e.g. <code>org.workshopdiy.flighttracker</code>).</p>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="phase">
+      <div class="when">Step 5 · ~1 min</div>
+      <h3>Drop in your web app + add Android platform</h3>
+      <pre class="code"><span class="cmt"># Put all your HTML/CSS/JS into www/</span>
+<span class="kw">mkdir</span> www
+<span class="kw">cp</span> -R /path/to/your-website/* www/
+
+<span class="cmt"># Generate the Android gradle project</span>
+<span class="fn">npx</span> cap add android</pre>
+      <p>You now have a full <code>android/</code> folder — a real Gradle project. Peek inside:</p>
+      <pre class="code"><span class="fn">ls</span> android/app/src/main/
+<span class="cmt"># AndroidManifest.xml, assets/, java/, res/</span></pre>
+      <p>Your web files were copied into <code>android/app/src/main/assets/public/</code>. That's what the app will load when it launches.</p>
+    </div>
+
+    <!-- STEP 6 -->
+    <div class="phase">
+      <div class="when">Step 6 · ~4 min · first time (subsequent builds ~30 sec)</div>
+      <h3>Build the debug APK</h3>
+      <p>First tell Gradle where the Android SDK is:</p>
+      <pre class="code"><span class="fn">echo</span> <span class="str">"sdk.dir=$ANDROID_HOME"</span> &gt; android/local.properties</pre>
+      <p>Now build:</p>
+      <pre class="code"><span class="kw">cd</span> android
+./gradlew assembleDebug</pre>
+      <p>First run downloads Gradle itself (~200 MB) and every Android build-time dependency. Future runs only rebuild what changed. Expected output ends with:</p>
+      <pre class="code"><span class="cmt">BUILD SUCCESSFUL in 4m 8s</span>
+<span class="cmt">93 actionable tasks: 93 executed</span></pre>
+      <p>Your APK is at:</p>
+      <pre class="code">android/app/build/outputs/apk/debug/app-debug.apk</pre>
+    </div>
+
+    <!-- STEP 7 -->
+    <div class="phase">
+      <div class="when">Step 7 · ~3 min · one-time per Mac</div>
+      <h3>Create an emulator</h3>
+      <pre class="code"><span class="fn">avdmanager</span> create avd -n my_phone \
+  -k <span class="str">"system-images;android-34;google_apis;x86_64"</span> \
+  -d pixel_7
+
+<span class="cmt"># Verify it exists</span>
+<span class="fn">emulator</span> -list-avds
+<span class="cmt"># → my_phone</span></pre>
+      <div class="kids">
+        <p>"avd" = Android Virtual Device. "pixel_7" tells it to pretend to be a Pixel 7 phone — same screen size, same pixel density. You can pick other profiles like <code>pixel_tablet</code> or <code>Nexus_5</code>.</p>
+      </div>
+    </div>
+
+    <!-- STEP 8 -->
+    <div class="phase">
+      <div class="when">Step 8 · ~2 min to boot</div>
+      <h3>Start the emulator + install the APK</h3>
+      <pre class="code"><span class="cmt"># Boot the fake phone in a separate terminal window/tab</span>
+<span class="fn">emulator</span> -avd my_phone
+
+<span class="cmt"># Meanwhile, in the original terminal: wait for it to be ready</span>
+<span class="fn">adb</span> wait-for-device
+<span class="kw">while</span> [ <span class="str">"$(adb shell getprop sys.boot_completed | tr -d '\r')"</span> != <span class="str">"1"</span> ]; <span class="kw">do</span>
+  <span class="fn">sleep</span> 5; <span class="kw">echo</span> <span class="str">"still booting..."</span>
+<span class="kw">done</span>
+<span class="kw">echo</span> <span class="str">"booted!"</span>
+
+<span class="cmt"># Install and launch</span>
+<span class="fn">adb</span> install app/build/outputs/apk/debug/app-debug.apk
+<span class="fn">adb</span> shell am start -n com.example.myapp/.MainActivity</pre>
+      <p>You should see the emulator screen light up with your app. Congratulations — you have a real Android app running.</p>
+    </div>
+
+    <!-- STEP 9 -->
+    <div class="phase">
+      <div class="when">Step 9 · whenever you change the web app</div>
+      <h3>Update loop</h3>
+      <p>Every time you edit your HTML/CSS/JS:</p>
+      <pre class="code"><span class="cmt"># Sync web changes into the android project</span>
+<span class="kw">cp</span> -R /path/to/your-website/* www/
+<span class="fn">npx</span> cap sync android
+
+<span class="cmt"># Rebuild + reinstall</span>
+<span class="kw">cd</span> android && ./gradlew assembleDebug
+<span class="fn">adb</span> install -r app/build/outputs/apk/debug/app-debug.apk
+<span class="cmt"># -r = replace existing</span>
+
+<span class="fn">adb</span> shell am start -n com.example.myapp/.MainActivity</pre>
+      <p>Typical cycle: edit → sync → rebuild → reinstall = ~30 seconds.</p>
+    </div>
+
+    <!-- STEP 10 -->
+    <div class="phase">
+      <div class="when">Step 10 · ~2 min · one-time, do in YOUR terminal</div>
+      <h3>Create your upload keystore</h3>
+      <p>⚠️ <strong>Only you can do this step</strong> — it asks for a password that nobody else should ever know.</p>
+      <pre class="code"><span class="kw">mkdir</span> -p ~/keys
+<span class="fn">keytool</span> -genkey -v \
+  -keystore ~/keys/upload.keystore \
+  -alias mykey \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -storetype PKCS12</pre>
+      <p>Answers it asks for, in order:</p>
+      <ol>
+        <li>Keystore password (twice) — pick something strong, save in a password manager</li>
+        <li>First and last name (CN) → your name</li>
+        <li>Organizational unit (OU) → your team/project name</li>
+        <li>Organization (O) → your company or personal brand</li>
+        <li>City / State / Country code (2 letters) → e.g. <code>DZ</code>, <code>FR</code></li>
+        <li>"Is this correct?" → type <code>yes</code></li>
+        <li>Key password → press Enter to reuse the keystore password</li>
+      </ol>
+      <div class="blocker">
+        <strong>Back up the .keystore file immediately.</strong> If you lose it, you can never update the app on Play Store — ever. Copy to encrypted USB, 1Password, iCloud Keychain Attachment, etc.
+      </div>
+    </div>
+
+    <!-- STEP 11 -->
+    <div class="phase">
+      <div class="when">Step 11 · ~1 min</div>
+      <h3>Wire the keystore into Gradle</h3>
+      <p>Create <code>android/keystore.properties</code> (gitignored — never commit this!):</p>
+      <pre class="code">storeFile=/Users/YOU/keys/upload.keystore
+storePassword=YOUR_PASSWORD_HERE
+keyAlias=mykey
+keyPassword=YOUR_PASSWORD_HERE</pre>
+      <p>Patch <code>android/app/build.gradle</code> to use it (done automatically in our Capacitor project). Then build the signed AAB:</p>
+      <pre class="code"><span class="kw">cd</span> android && ./gradlew bundleRelease
+<span class="cmt"># AAB at: app/build/outputs/bundle/release/app-release.aab</span></pre>
+      <p>This <code>.aab</code> is what you upload to Play Store.</p>
+    </div>
+
+    <!-- STEP 12 -->
+    <div class="phase">
+      <div class="when">Step 12 · $25 + 1–7 days waiting</div>
+      <h3>Publish to Play Store</h3>
+      <ol>
+        <li>Go to <a href="https://play.google.com/console">play.google.com/console</a>, pay $25.</li>
+        <li>Complete identity verification (ID document + address proof).</li>
+        <li>Click <strong>Create app</strong>. Fill in metadata from your <code>PLAY_STORE_LISTING.md</code>.</li>
+        <li>Upload:
+          <ul style="margin-top:4px">
+            <li>512×512 app icon</li>
+            <li>1024×500 feature graphic</li>
+            <li>≥ 2 phone screenshots</li>
+            <li>Privacy policy URL (public HTTPS page — host <code>privacy.html</code> on GitHub Pages)</li>
+          </ul>
+        </li>
+        <li>Go to <strong>Production → Create new release</strong> → upload <code>app-release.aab</code>.</li>
+        <li>Or better: <strong>Internal testing → Create release</strong> first (no review delay, available immediately to you and up to 100 email-invited testers).</li>
+        <li>Add your own email as a tester. Install from the test link on your Android phone. Verify.</li>
+        <li>When happy, promote to <strong>Production</strong>. Google reviews it (2–7 days). Once approved, the app is live worldwide.</li>
+      </ol>
+    </div>
+
+    <!-- STEP 13 -->
+    <div class="phase">
+      <div class="when">Step 13 · for each update</div>
+      <h3>Releasing updates</h3>
+      <p>Every future release:</p>
+      <ol>
+        <li>Edit your web app.</li>
+        <li>In <code>android/app/build.gradle</code>: increment <code>versionCode</code> (integer, e.g. 1 → 2) AND <code>versionName</code> (string, e.g. "1.0" → "1.1").</li>
+        <li><code>npx cap sync android</code></li>
+        <li><code>cd android && ./gradlew bundleRelease</code></li>
+        <li>Upload the new AAB to Play Console.</li>
+        <li>Write release notes. Submit. Wait for review.</li>
+      </ol>
+    </div>
+
+  </div>
+</section>
+
+<!-- ======================================================== GLOSSARY -->
+<!-- ======================================================== MANAGE.SH -->
+<section id="manage-sh">
+  <h2><span class="num">12</span>The <code>manage.sh</code> script (full reference)</h2>
+  <p class="lede">
+    A single entry point that auto-detects your OS (macOS / Linux / Windows git-bash / MSYS2)
+    and launches the right platform-specific menu. Designed so nobody has to memorise commands
+    <strong>and</strong> so the same instructions work across all three operating systems.
+    Run it, pick a number, follow prompts.
+  </p>
+
+  <div class="kids">
+    <p><strong>Think of it as the control panel of a spaceship.</strong> You don't need to remember which lever does what — it's labelled, and it asks before doing anything dangerous. And it speaks whatever language the spaceship is running on (macOS / Linux / Windows), so you only learn it once.</p>
+  </div>
+
+  <h3 style="color:#fff;margin-top:30px">One entry point, OS-aware dispatcher</h3>
+  <p>There's <strong>only one command to remember</strong>, regardless of OS: <code>./manage.sh</code>. The dispatcher inspects <code>uname -s</code> and <code>$MSYSTEM</code>, then <code>exec</code>s the matching platform script.</p>
+  <pre class="code"><span class="cmt"># Works on macOS, Linux, and Windows (git-bash / MSYS2) — same command</span>
+<span class="fn">chmod</span> +x ./manage.sh
+./manage.sh</pre>
+  <p>Override auto-detection if needed (useful for testing or WSL):</p>
+  <pre class="code"><span class="kw">FORCE_OS</span>=linux ./manage.sh
+<span class="kw">FORCE_OS</span>=macos ./manage.sh
+<span class="kw">FORCE_OS</span>=windows ./manage.sh</pre>
+
+  <h3 style="color:#fff;margin-top:30px">What the dispatcher picks</h3>
+  <table class="neat">
+    <thead><tr><th>Detected via</th><th>Dispatches to</th><th>Shell</th><th>Package manager</th></tr></thead>
+    <tbody>
+      <tr><td><code>uname = Darwin</code></td><td><code>manage-macos.sh</code></td><td>bash / zsh</td><td>Homebrew</td></tr>
+      <tr><td><code>uname = Linux</code></td><td><code>manage-linux.sh</code></td><td>bash</td><td>apt / dnf / pacman (auto-detected)</td></tr>
+      <tr><td><code>$MSYSTEM</code> set OR <code>uname = MINGW*/MSYS*/CYGWIN*</code></td><td><code>manage-windows.sh</code></td><td>git-bash <strong>or</strong> MSYS2 UCRT64</td><td>pacman (if MSYS2) / winget fallback</td></tr>
+    </tbody>
+  </table>
+  <p>All three platform scripts share the same 14-option menu and the same env vars. A teacher can say "option 5" and it means the same thing whether the student is on macOS, Linux, or Windows.</p>
+
+  <h3 style="color:#fff;margin-top:30px">Files shipped</h3>
+  <pre class="code">flight-tracker/
+├── <span class="fn">manage.sh</span>              <span class="cmt"># ← entry point (dispatcher). Run this.</span>
+├── manage-macos.sh       <span class="cmt"># Brew-based installs, /Applications paths</span>
+├── manage-linux.sh       <span class="cmt"># apt/dnf/pacman, /opt paths, KVM checks</span>
+└── manage-windows.sh     <span class="cmt"># pacman/winget, /c/ paths, WHPX checks</span></pre>
+
+  <p>You'll see a menu with 14 options grouped into 4 categories: <strong>inspect</strong>, <strong>install</strong>, <strong>build</strong>, <strong>sign &amp; release</strong>, <strong>test on device</strong>.</p>
+
+  <h3 style="color:#fff;margin-top:40px">Menu options in detail</h3>
+
+  <div class="timeline">
+
+    <!-- OPTION 1 -->
+    <div class="phase">
+      <div class="when">Option 1 · inspect</div>
+      <h3>Check environment</h3>
+      <p>Runs a full diagnostic. No changes. Safe to run anytime.</p>
+      <p><strong>Checks:</strong></p>
+      <ul>
+        <li>Core tools: <code>node</code>, <code>npm</code>, <code>brew</code>, <code>git</code></li>
+        <li>Android Studio's embedded JDK (at <code>$JAVA_HOME</code>)</li>
+        <li>Android SDK tools: <code>sdkmanager</code>, <code>adb</code>, <code>emulator</code>, <code>avdmanager</code></li>
+        <li>Installed SDK platforms (<code>$ANDROID_HOME/platforms/</code>)</li>
+        <li>Project state: <code>capacitor.config.json</code>, <code>node_modules</code>, <code>android/</code></li>
+        <li>Keystore presence + <code>keystore.properties</code> wiring</li>
+        <li>Available AVDs (virtual devices)</li>
+      </ul>
+      <p><strong>Expected healthy output:</strong> 12+ green ticks (✓). Yellow warnings (!) indicate optional missing pieces (e.g. keystore not yet created).</p>
+    </div>
+
+    <!-- OPTION 2 -->
+    <div class="phase">
+      <div class="when">Option 2 · install</div>
+      <h3>Install prerequisites</h3>
+      <p>Installs whatever's missing from: <code>android-studio</code>, <code>android-commandlinetools</code> (via Homebrew casks).</p>
+      <p><strong>Preconditions:</strong> Homebrew must be installed.<br>
+      <strong>Confirms before</strong> running (<code>~5 GB total download</code>).<br>
+      <strong>Idempotent:</strong> if already installed, does nothing.</p>
+    </div>
+
+    <!-- OPTION 3 -->
+    <div class="phase">
+      <div class="when">Option 3 · install</div>
+      <h3>Install Android SDK components</h3>
+      <p>Accepts licenses + fetches what Gradle needs:</p>
+      <ul>
+        <li><code>platform-tools</code> (provides <code>adb</code>)</li>
+        <li><code>platforms;android-34</code> (API level 34, current target)</li>
+        <li><code>build-tools;34.0.0</code></li>
+        <li><code>emulator</code></li>
+        <li><code>system-images;android-34;google_apis;x86_64</code> (the Android system image the emulator runs)</li>
+      </ul>
+      <p>First run downloads ~2 GB. Idempotent on subsequent runs.</p>
+    </div>
+
+    <!-- OPTION 4 -->
+    <div class="phase">
+      <div class="when">Option 4 · build</div>
+      <h3>Sync web app → Android project</h3>
+      <p>The most-used option during development. Does in order:</p>
+      <ol>
+        <li><code>rsync -a --delete $SRC_BOOK_DIR/ $PROJECT/www/</code> — copies the source book files, removing anything deleted.</li>
+        <li><code>npm install</code> if <code>node_modules</code> is missing.</li>
+        <li><code>npx cap sync android</code> — Capacitor copies <code>www/</code> into <code>android/app/src/main/assets/public/</code>.</li>
+      </ol>
+      <p><strong>Env vars:</strong> override <code>SRC_BOOK_DIR</code> to point at a different source book.</p>
+      <pre class="code">SRC_BOOK_DIR=~/Desktop/02_choughl/koutoub/02-al-miraat ./manage.sh</pre>
+    </div>
+
+    <!-- OPTION 5 -->
+    <div class="phase">
+      <div class="when">Option 5 · build</div>
+      <h3>Build debug APK</h3>
+      <p>Invokes <code>./gradlew assembleDebug</code>. Writes <code>local.properties</code> with <code>sdk.dir</code> if missing. First run: ~4 min. Subsequent runs: ~30 sec.</p>
+      <p><strong>Output:</strong> <code>android/app/build/outputs/apk/debug/app-debug.apk</code> (~4 MB)</p>
+      <p><strong>Use when:</strong> testing locally on emulator or real phone.</p>
+    </div>
+
+    <!-- OPTION 6 -->
+    <div class="phase">
+      <div class="when">Option 6 · build</div>
+      <h3>Build release AAB</h3>
+      <p>Invokes <code>./gradlew bundleRelease</code>. Produces the Play Store upload format.</p>
+      <p><strong>Warning logic:</strong> if <code>keystore.properties</code> is missing, warns and asks to continue (unsigned builds are useful to verify the build works but can't be uploaded).</p>
+      <p><strong>Output:</strong> <code>android/app/build/outputs/bundle/release/app-release.aab</code> (~3 MB)</p>
+    </div>
+
+    <!-- OPTION 7 -->
+    <div class="phase">
+      <div class="when">Option 7 · sign &amp; release</div>
+      <h3>Keystore management</h3>
+      <p><strong>Two modes</strong>, depending on state:</p>
+      <ol>
+        <li><strong>No keystore yet</strong> → asks to create one via <code>keytool -genkey</code>. You'll be prompted interactively for password + identity. After creation, reminds you to back up the file.</li>
+        <li><strong>Keystore exists</strong> → displays its alias, creation date, validity.</li>
+      </ol>
+      <p>After ensuring the keystore exists, checks <code>keystore.properties</code>:</p>
+      <ul>
+        <li>If missing: creates it from template (with placeholders), opens <code>$EDITOR</code> (nano by default).</li>
+        <li>If present but still has placeholder strings: warns, offers to open.</li>
+        <li>If fully configured: confirms with ✓.</li>
+      </ul>
+      <p><strong>Env vars:</strong> <code>KEYSTORE_FILE</code>, <code>KEYSTORE_DIR</code>.</p>
+    </div>
+
+    <!-- OPTION 8 -->
+    <div class="phase">
+      <div class="when">Option 8 · device</div>
+      <h3>Create emulator (AVD)</h3>
+      <p>Creates a named virtual device. Default: <code>$AVD_NAME=flight_tracker_test</code>, Pixel 7, API 34, x86_64.</p>
+      <p>Idempotent: if an AVD with that name exists, skips creation.</p>
+      <p><strong>Customise</strong> by setting <code>AVD_NAME</code> env var before running.</p>
+    </div>
+
+    <!-- OPTION 9 -->
+    <div class="phase">
+      <div class="when">Option 9 · device</div>
+      <h3>Launch emulator</h3>
+      <p>Starts the AVD in the background with performance-friendly flags (<code>-no-snapshot -no-audio -no-boot-anim</code>), streams output to <code>/tmp/emu.log</code>.</p>
+      <p>Then polls <code>sys.boot_completed</code> every 6 seconds until ready or 3 minutes elapse. On Intel Macs expect 90–120 seconds boot.</p>
+      <p><strong>Skips</strong> if an emulator is already running.</p>
+    </div>
+
+    <!-- OPTION 10 -->
+    <div class="phase">
+      <div class="when">Option 10 · device</div>
+      <h3>Install APK on device</h3>
+      <ol>
+        <li>Checks at least one device is connected (<code>adb devices</code>).</li>
+        <li>Checks debug APK exists.</li>
+        <li><code>adb install -r app-debug.apk</code> (the <code>-r</code> replaces any previous version).</li>
+        <li><code>adb shell am start -n $APP_ID/.MainActivity</code> — launches the app.</li>
+      </ol>
+      <p>Works for either emulator OR a real phone plugged via USB (with USB debugging enabled).</p>
+    </div>
+
+    <!-- OPTION 11 -->
+    <div class="phase">
+      <div class="when">Option 11 · device</div>
+      <h3>Take screenshot</h3>
+      <p>Captures the current screen of the connected device via <code>adb exec-out screencap -p</code>. Saves to <code>/tmp/flight-tracker-YYYYMMDD-HHMMSS.png</code>. Offers to open it.</p>
+      <p><strong>Good for:</strong> Play Store screenshot collection, bug reports, progress photos.</p>
+    </div>
+
+    <!-- OPTION 12 -->
+    <div class="phase">
+      <div class="when">Option 12 · docs</div>
+      <h3>Open WORKSHOP.html</h3>
+      <p>Opens this document in your default browser (<code>open WORKSHOP.html</code>). Useful if you lose the tab.</p>
+    </div>
+
+    <!-- OPTION 13 -->
+    <div class="phase">
+      <div class="when">Option 13 · docs</div>
+      <h3>Git status</h3>
+      <p>Shows recent commits (<code>git log --oneline -5</code>) and working tree state (<code>git status --short</code>). If the project isn't a git repo yet, offers to init one.</p>
+    </div>
+
+    <!-- OPTION 14 -->
+    <div class="phase">
+      <div class="when">Option 14 · build</div>
+      <h3>Clean build artifacts</h3>
+      <p>Removes <code>android/app/build/</code>, <code>android/build/</code>, <code>android/.gradle/</code>. Useful when Gradle gets confused ("try turning it off and on again" for Android builds).</p>
+      <p>Confirms before deletion. Never touches source files.</p>
+    </div>
+
+  </div>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff;margin-bottom:10px">Environment variables (for customising)</h3>
+  <table class="neat">
+    <thead>
+      <tr><th>Variable</th><th>Default</th><th>What it controls</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>SRC_BOOK_DIR</code></td><td><code>~/Desktop/02_choughl/koutoub/01-flight-tracker</code></td><td>Source book folder that option 4 copies into <code>www/</code></td></tr>
+      <tr><td><code>APP_ID</code></td><td><code>org.workshopdiy.flighttracker</code></td><td>Package name used by <code>adb shell am start</code></td></tr>
+      <tr><td><code>AVD_NAME</code></td><td><code>flight_tracker_test</code></td><td>Virtual device name created by option 8, booted by option 9</td></tr>
+      <tr><td><code>KEYSTORE_FILE</code></td><td><code>~/keys/wdiy-upload.keystore</code></td><td>Where the upload keystore lives</td></tr>
+      <tr><td><code>KEYSTORE_DIR</code></td><td><code>~/keys</code></td><td>Directory created by option 7 if missing</td></tr>
+      <tr><td><code>JAVA_HOME</code></td><td>Android Studio's embedded JBR</td><td>Which Java runtime Gradle uses</td></tr>
+      <tr><td><code>ANDROID_HOME</code></td><td><code>/usr/local/share/android-commandlinetools</code></td><td>Root of the Android SDK</td></tr>
+      <tr><td><code>EDITOR</code></td><td><code>nano</code></td><td>Which editor opens for <code>keystore.properties</code></td></tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top:20px"><strong>Example — run for a different book:</strong></p>
+  <pre class="code">SRC_BOOK_DIR=~/Desktop/02_choughl/koutoub/05-iyadat-al-ummah \
+APP_ID=org.workshopdiy.iyadataldummah \
+AVD_NAME=iyadat_test \
+./manage.sh</pre>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff;margin-bottom:10px">Safety features</h3>
+  <div class="grid grid-3">
+    <div class="card">
+      <h4>🛡️ Confirm-before-destructive</h4>
+      <p>Installing, creating keystores, cleaning — all ask <code>[y/N]</code> before running.</p>
+    </div>
+    <div class="card">
+      <h4>🎯 Idempotent checks</h4>
+      <p>Running option 2 twice won't re-download. Running option 8 on an existing AVD is a no-op.</p>
+    </div>
+    <div class="card">
+      <h4>📋 Diagnostic first</h4>
+      <p>Most actions check their preconditions and tell you which other option to run if something's missing.</p>
+    </div>
+    <div class="card">
+      <h4>🖥️ Color + plain text</h4>
+      <p>Detects if stdout is a terminal; falls back to uncolored text when piped or logged.</p>
+    </div>
+    <div class="card">
+      <h4>🧭 Labelled groups</h4>
+      <p>Options grouped visually: inspect / install / build / sign / device. Find what you need at a glance.</p>
+    </div>
+    <div class="card">
+      <h4>🔐 No secret leakage</h4>
+      <p>Keystore password entry is delegated to <code>keytool</code> and your editor — never stored in the script or echoed.</p>
+    </div>
+  </div>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff;margin-bottom:10px">Typical flows</h3>
+
+  <p><strong>🆕 First time on a new Mac:</strong></p>
+  <pre class="code">./manage.sh
+  → 1 (check: see what's missing)
+  → 2 (install Android Studio + cmdline tools) — ~25 min download
+  → 3 (install SDK components) — ~10 min
+  → 1 (check: everything green now?)
+  → 4 (sync web app)
+  → 5 (build debug APK) — ~4 min
+  → 8 (create emulator)
+  → 9 (launch emulator) — ~2 min boot
+  → 10 (install APK + launch)
+  → 11 (screenshot to verify)</pre>
+
+  <p><strong>🔁 Daily iteration loop (after editing the source book):</strong></p>
+  <pre class="code">./manage.sh
+  → 4 (sync)
+  → 5 (rebuild)
+  → 10 (reinstall + launch)</pre>
+
+  <p><strong>🚀 Preparing a Play Store release:</strong></p>
+  <pre class="code">./manage.sh
+  → 7 (keystore — create if first time, edit keystore.properties)
+  → 6 (build signed AAB)
+  → upload app-release.aab to Play Console manually</pre>
+
+</section>
+
+<!-- ======================================================== PLAY STORE -->
+<section id="play-store">
+  <h2><span class="num">13</span>Publishing to Google Play Store (step-by-step)</h2>
+  <p class="lede">
+    Full flow from "I have a signed AAB" to "my app is live on the Play Store". Assumes
+    you've completed step 10 of the walkthrough (created keystore + built signed AAB).
+    OS-independent — you do everything in the Play Console web UI.
+  </p>
+
+  <div class="kids">
+    <p><strong>The Play Store is like a bookshop for apps.</strong> Before your app can sit on a shelf, the shopkeeper (Google) needs to know you're a real person, that your app isn't dangerous, and that it has a cover, a description, and a price tag. This section walks through every door you have to knock on.</p>
+  </div>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">Overview — what you'll do, in order</h3>
+  <div class="grid grid-3">
+    <div class="card"><h4>1. Register</h4><p>Create Play Console account ($25). Wait for identity verification (1–2 days).</p></div>
+    <div class="card"><h4>2. Create app</h4><p>Declare name, language, free/paid, app/game, content classification.</p></div>
+    <div class="card"><h4>3. Fill the dashboard</h4><p>Privacy policy, data safety, ads, content rating, target audience, categorisation.</p></div>
+    <div class="card"><h4>4. Store listing</h4><p>Title, descriptions, icon, feature graphic, screenshots.</p></div>
+    <div class="card"><h4>5. Internal testing</h4><p>Upload AAB, invite yourself as tester, install via test link, verify.</p></div>
+    <div class="card"><h4>6. Promote to Production</h4><p>Wait 2–7 days for Google review. Then it's live worldwide.</p></div>
+  </div>
+
+  <hr class="soft">
+
+  <div class="timeline">
+
+    <!-- =========================================================== -->
+    <div class="phase">
+      <div class="when">Phase 1 · Register · ~30 min active + 1–7 days waiting</div>
+      <h3>Create Play Console account</h3>
+      <ol>
+        <li>Go to <a href="https://play.google.com/console/signup">play.google.com/console/signup</a>. Sign in with the Google account you want associated with the publisher.</li>
+        <li><strong>Choose account type:</strong>
+          <ul>
+            <li><strong>Personal</strong> — listed under your name. Verification in 1–2 days. Simpler for a first app.</li>
+            <li><strong>Organisation</strong> — listed under the organisation's name. Requires a <strong>DUNS number</strong> (free, apply at <a href="https://www.dnb.com/duns/duns-number.html">dnb.com</a>, ~1 week). Better for a brand like <em>workshop-diy</em>.</li>
+          </ul>
+        </li>
+        <li>Pay the <strong>$25 one-time registration fee</strong> by credit card.</li>
+        <li>Fill contact details. Accept the Developer Distribution Agreement.</li>
+        <li><strong>Identity verification</strong>: Google asks for a government ID photo and proof of address (utility bill, bank statement). Upload, wait. You'll get an email when approved.</li>
+      </ol>
+      <div class="blocker">
+        <strong>Heads up:</strong> as of 2023, Google requires all new accounts to test their app with <strong>20 internal testers for 14 days</strong> before allowing Production release. Start gathering 20 email addresses (family, friends, Discord, colleagues) now — you'll add them as testers in Phase 5.
+      </div>
+    </div>
+
+    <!-- =========================================================== -->
+    <div class="phase">
+      <div class="when">Phase 2 · Create app · ~2 min</div>
+      <h3>Create a new app entry</h3>
+      <p>In Play Console → <strong>All apps → Create app</strong>. Fill:</p>
+      <table class="neat">
+        <tbody>
+          <tr><td><strong>App name</strong></td><td><code>Flight Tracker</code> (keep it short — 30 chars max; you can add translated names per locale later)</td></tr>
+          <tr><td><strong>Default language</strong></td><td><code>Arabic (ar)</code> — the primary target audience</td></tr>
+          <tr><td><strong>App or game</strong></td><td>App</td></tr>
+          <tr><td><strong>Free or paid</strong></td><td>Free</td></tr>
+          <tr><td><strong>Declarations</strong></td><td>Tick both: "meets Developer Program Policies" + "US export laws"</td></tr>
+        </tbody>
+      </table>
+      <p>Click <strong>Create app</strong>. You land on the app dashboard with a long checklist down the left.</p>
+    </div>
+
+    <!-- =========================================================== -->
+    <div class="phase">
+      <div class="when">Phase 3 · Dashboard checklist · ~1 hour</div>
+      <h3>Fill the "Set up your app" checklist</h3>
+      <p>Play Console shows ~10 dashboard cards. Each is quick; they unlock the ability to submit. Do them in roughly this order:</p>
+
+      <ol>
+        <li><strong>Privacy policy URL</strong> — a public HTTPS page. You have <code>store-assets/privacy.html</code>; host it. Easiest: push it to a GitHub repo and enable Pages:
+<pre class="code"><span class="cmt"># Create repo on github.com (e.g. abourdim/flight-tracker-privacy)</span>
+<span class="kw">cd</span> store-assets
+<span class="fn">git</span> init && <span class="fn">git</span> add privacy.html && <span class="fn">git</span> commit -m <span class="str">"privacy"</span>
+<span class="fn">git</span> remote add origin https://github.com/abourdim/flight-tracker-privacy.git
+<span class="fn">git</span> branch -M main && <span class="fn">git</span> push -u origin main
+<span class="cmt"># On github.com: repo → Settings → Pages → Source: main branch → Save</span>
+<span class="cmt"># URL: https://abourdim.github.io/flight-tracker-privacy/privacy.html</span></pre>
+          Paste that URL into Play Console.
+        </li>
+
+        <li><strong>App access</strong> — "All functionality is available without special access". Tick.</li>
+
+        <li><strong>Ads</strong> — "No, my app does not contain ads".</li>
+
+        <li><strong>Content rating</strong> — fill the IARC questionnaire. For Flight Tracker (text content, religious subject, no violence/gambling): answer <em>No</em> to almost everything. You'll get an "Everyone" rating. Save &amp; apply.</li>
+
+        <li><strong>Target audience</strong> — pick age brackets. Flight Tracker is adults + teens. Select <strong>13+</strong> (ticking under-13 triggers stricter Google Play Families rules).</li>
+
+        <li><strong>News apps</strong> — "No".</li>
+
+        <li><strong>COVID-19 contact tracing</strong> — "No".</li>
+
+        <li><strong>Data safety</strong> — most important. Declare:
+          <ul>
+            <li>Does your app collect or share any of the required user data types? → <strong>No</strong></li>
+            <li>Is all user data encrypted in transit? → N/A (no data)</li>
+            <li>Do you provide a way to request data deletion? → N/A</li>
+          </ul>
+          Result: green "No data collected" banner on your listing. This is a huge trust signal.
+        </li>
+
+        <li><strong>Government apps</strong> — "No".</li>
+
+        <li><strong>Financial features</strong> — "No".</li>
+
+        <li><strong>Health apps</strong> — "No" (religious guidance isn't medical).</li>
+      </ol>
+    </div>
+
+    <!-- =========================================================== -->
+    <div class="phase">
+      <div class="when">Phase 4 · Store listing · ~30 min</div>
+      <h3>Main store listing</h3>
+      <p>Go to <strong>Grow → Store presence → Main store listing</strong>. Fill from your <code>PLAY_STORE_LISTING.md</code>:</p>
+
+      <table class="neat">
+        <thead><tr><th>Field</th><th>Constraint</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td>App name</td><td>≤30 chars</td><td><code>متتبع الطائرات</code> (Arabic default)</td></tr>
+          <tr><td>Short description</td><td>≤80 chars</td><td>From <code>PLAY_STORE_LISTING.md</code> §Arabic</td></tr>
+          <tr><td>Full description</td><td>≤4000 chars</td><td>From <code>PLAY_STORE_LISTING.md</code> §Arabic</td></tr>
+          <tr><td>App icon</td><td>512×512 PNG, ≤1 MB</td><td><code>store-assets/play-store-icon-512.png</code></td></tr>
+          <tr><td>Feature graphic</td><td>1024×500 PNG/JPG, no transparency</td><td><code>store-assets/feature-graphic.png</code></td></tr>
+          <tr><td>Phone screenshots</td><td>2–8 images, min 320px, max 3840px, 16:9 or 9:16</td><td>Capture from emulator (option 11 in manage.sh)</td></tr>
+          <tr><td>Tablet screenshots (optional)</td><td>min 1080×1920</td><td>Run emulator with a tablet AVD</td></tr>
+          <tr><td>Video (optional)</td><td>YouTube URL</td><td>Skip for v1</td></tr>
+        </tbody>
+      </table>
+
+      <h4 style="margin-top:20px;color:#fff">Capturing phone screenshots</h4>
+      <p>You need at least 2. Recommended 4–6 covering: home, sieve tab, quiz, women's rights.</p>
+      <pre class="code"><span class="cmt"># Start emulator + install app (via manage.sh options 9 and 10)</span>
+<span class="cmt"># For each screen you want to capture:</span>
+<span class="fn">adb</span> exec-out screencap -p &gt; <span class="str">"screenshot-$(date +%s).png"</span>
+<span class="cmt"># Or use manage.sh option 11 (interactive, saves to /tmp)</span></pre>
+      <p>Crop/clean them in any image editor so they're 16:9 portrait without the emulator chrome.</p>
+
+      <h4 style="margin-top:20px;color:#fff">Adding EN and FR translations</h4>
+      <p>In the left sidebar → <strong>Grow → Store presence → Store listings → + Add custom store listing</strong>. Pick English (US), paste the English section of <code>PLAY_STORE_LISTING.md</code>. Repeat for French.</p>
+      <p><strong>Screenshots can be re-used</strong> across languages unless your UI has non-translated text burned into the image.</p>
+    </div>
+
+    <!-- =========================================================== -->
+    <div class="phase">
+      <div class="when">Phase 5 · Internal testing · ~20 min + 14-day test period</div>
+      <h3>Upload AAB to Internal Testing track</h3>
+      <p><strong>Never upload directly to Production.</strong> Internal testing is instant, private, and unlimited uploads. It's also where you satisfy the 20-testers-for-14-days rule.</p>
+
+      <ol>
+        <li>Left sidebar → <strong>Test and release → Testing → Internal testing</strong>.</li>
+        <li>Click <strong>Create new release</strong>.</li>
+        <li><strong>Upload your AAB</strong>: drag-drop <code>android/app/build/outputs/bundle/release/app-release.aab</code>. Play Console verifies the signature.</li>
+        <li>On first upload, Play Console may ask about <strong>Play App Signing</strong> — <em>Accept</em>. Google holds the master key; you keep your upload key. This is how Google can serve optimised APKs per device.</li>
+        <li><strong>Release name</strong>: <code>1.0 (1)</code> (auto-filled from <code>versionName</code> and <code>versionCode</code>).</li>
+        <li><strong>Release notes</strong>:
+<pre class="code">&lt;ar&gt;الإصدار الأول. غربلة تفاعلية للبدع بثلاث لغات.&lt;/ar&gt;
+&lt;en-US&gt;Initial release. Interactive trilingual sifting of religious innovations.&lt;/en-US&gt;
+&lt;fr-FR&gt;Version initiale. Tamisage interactif trilingue des innovations religieuses.&lt;/fr-FR&gt;</pre>
+        </li>
+        <li><strong>Save → Review release → Start rollout to Internal testing</strong>. It goes live for testers in minutes.</li>
+      </ol>
+
+      <h4 style="margin-top:20px;color:#fff">Add testers</h4>
+      <ol>
+        <li>On the Internal testing page → <strong>Testers tab → Create email list</strong>.</li>
+        <li>Name it <code>workshop-diy-internal</code>.</li>
+        <li>Paste 20+ email addresses (one per line). They must be Gmail accounts that Play Store recognises.</li>
+        <li>Save, then tick the new list so it applies to this track.</li>
+        <li>Copy the <strong>opt-in URL</strong> (looks like <code>https://play.google.com/apps/internaltest/4701234567890</code>).</li>
+        <li>Send that URL to each tester. They click it → opt in → can install the app from Play Store.</li>
+      </ol>
+
+      <h4 style="margin-top:20px;color:#fff">Install on your own phone from the test link</h4>
+      <ol>
+        <li>On your Android phone, open the opt-in URL (while signed into the Gmail you added as a tester).</li>
+        <li>Click "Become a tester" → "Download on Google Play".</li>
+        <li>Install — it's a real Play Store install now, with proper signing + updates pipeline.</li>
+      </ol>
+    </div>
+
+    <!-- =========================================================== -->
+    <div class="phase">
+      <div class="when">Phase 6 · Promotion · 2–7 days Google review</div>
+      <h3>Promote to Production</h3>
+      <p>After you've satisfied the 14-day / 20-tester criterion AND done your own QA:</p>
+      <ol>
+        <li>Left sidebar → <strong>Test and release → Testing → Internal testing</strong>.</li>
+        <li>Find your release → click <strong>Promote release → Production</strong>.</li>
+        <li>Confirm countries (choose <strong>All countries</strong> unless you want to restrict).</li>
+        <li><strong>Review release → Start rollout to Production</strong>.</li>
+        <li>Status changes to <strong>In review</strong>. Email arrives when approved (usually 2–3 days, sometimes same-day, occasionally 7+ for new accounts).</li>
+      </ol>
+      <p>Once approved, your app is live at:</p>
+      <pre class="code">https://play.google.com/store/apps/details?id=org.workshopdiy.flighttracker</pre>
+    </div>
+
+    <!-- =========================================================== -->
+    <div class="phase">
+      <div class="when">Phase 7 · Releasing updates · each version</div>
+      <h3>How updates work</h3>
+      <ol>
+        <li>Edit the web app source.</li>
+        <li>In <code>android/app/build.gradle</code>: bump <code>versionCode</code> (integer, always increments) AND <code>versionName</code> (human-readable).
+          <pre class="code">versionCode 2
+versionName "1.1"</pre>
+        </li>
+        <li>Run option 4 (sync) + option 6 (build signed AAB) in <code>manage.sh</code>.</li>
+        <li>In Play Console → Internal testing → Create new release → upload new AAB → release notes → rollout.</li>
+        <li>Test for a day or two, then promote to Production.</li>
+        <li>Google reviews updates much faster than first submission (often within hours).</li>
+      </ol>
+    </div>
+
+  </div>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">Common rejections and how to avoid them</h3>
+  <table class="neat">
+    <thead><tr><th>Rejection</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>"Privacy policy doesn't mention data collection"</td><td>Your privacy policy must explicitly name each data type declared in Data Safety. Even "we collect nothing" must be stated.</td></tr>
+      <tr><td>"App metadata misrepresents the app"</td><td>Screenshots must show real app UI, not marketing mockups. Don't include external logos.</td></tr>
+      <tr><td>"Target API level too low"</td><td>Must target current — 1 year. Our <code>compileSdk 34</code> is fine through mid-2026; bump to 35 when 2027 nears.</td></tr>
+      <tr><td>"Content rating inconsistent"</td><td>If Data Safety says "no data" but rating questionnaire says "collects location" etc., they clash. Keep them aligned.</td></tr>
+      <tr><td>"Impersonation / trademark"</td><td>Don't use "Google", "Android", "Islam" alone, or other trademarked terms in the app name.</td></tr>
+      <tr><td>"Broken functionality"</td><td>Google QA testers will open your app. If a tab crashes or is empty, rejection. This is why §03 Phase 1 audit mattered.</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">Useful Play Console URLs</h3>
+  <div class="grid grid-2">
+    <div class="card"><h4>🏠 Main dashboard</h4><p class="meta"><a href="https://play.google.com/console">play.google.com/console</a></p></div>
+    <div class="card"><h4>📝 Publish checklist</h4><p class="meta"><a href="https://support.google.com/googleplay/android-developer/answer/9859152">support.google.com/.../9859152</a></p></div>
+    <div class="card"><h4>🔐 App signing</h4><p class="meta"><a href="https://support.google.com/googleplay/android-developer/answer/9842756">support.google.com/.../9842756</a></p></div>
+    <div class="card"><h4>🛡️ Data safety form guide</h4><p class="meta"><a href="https://support.google.com/googleplay/android-developer/answer/10787469">support.google.com/.../10787469</a></p></div>
+    <div class="card"><h4>👥 Internal testing setup</h4><p class="meta"><a href="https://support.google.com/googleplay/android-developer/answer/9845334">support.google.com/.../9845334</a></p></div>
+    <div class="card"><h4>📜 Developer policies</h4><p class="meta"><a href="https://play.google/developer-content-policy/">play.google/developer-content-policy</a></p></div>
+  </div>
+
+  <hr class="soft">
+
+  <div class="kids">
+    <p><strong>Realistic timeline for v1:</strong> Day 0 (register) → Day 1–2 (identity verified, create app, fill dashboard, listing) → Day 2 (upload to internal testing, share with 20 testers) → Day 16 (minimum 14-day test period elapsed) → Day 16 (promote to production) → Day 18–23 (Google review, app goes live).</p>
+  </div>
+</section>
+
+<!-- ======================================================== iOS -->
+<section id="ios">
+  <h2><span class="num">14</span>iOS / iPhone / App Store <span style="color:var(--text-faint);font-size:0.7em">(macOS only)</span></h2>
+  <p class="lede">
+    Everything we did for Android also works for iPhone. Capacitor scaffolds a real Xcode
+    project; you build, run on the simulator or a real iPhone, and submit to the App Store.
+    One crucial constraint: <strong>you need a Mac with Xcode</strong>. Apple does not allow
+    iOS builds on Linux or Windows.
+  </p>
+
+  <div class="kids">
+    <p><strong>iPhone apps are made in a special workshop called Xcode</strong>, and that workshop only exists on Apple's own computers (Mac). Linux and Windows computers can still write the app's text and pictures, but they have to send the final building to a Mac friend.</p>
+  </div>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">Android vs iOS — the differences that matter</h3>
+  <table class="neat">
+    <thead><tr><th></th><th>Android (Play Store)</th><th>iOS (App Store)</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Build machine</strong></td><td>macOS / Linux / Windows</td><td><strong>Mac only</strong></td></tr>
+      <tr><td><strong>IDE needed</strong></td><td>optional (Gradle CLI works)</td><td>Xcode (~10 GB)</td></tr>
+      <tr><td><strong>Developer fee</strong></td><td>$25 one-time</td><td><strong>$99/year</strong></td></tr>
+      <tr><td><strong>Install on your own device</strong></td><td>free, just enable USB debugging</td><td>requires free Apple ID + Xcode signing (7-day cert)</td></tr>
+      <tr><td><strong>Package format</strong></td><td>AAB (was APK)</td><td>IPA</td></tr>
+      <tr><td><strong>Internal testing</strong></td><td>Play Console → Internal Testing</td><td>App Store Connect → <strong>TestFlight</strong></td></tr>
+      <tr><td><strong>Tester invite limit</strong></td><td>100 emails (Internal)</td><td>100 internal + 10,000 external via public link</td></tr>
+      <tr><td><strong>Store review time</strong></td><td>2–7 days</td><td>24–48h (sometimes faster)</td></tr>
+      <tr><td><strong>Sideloading friends' phones</strong></td><td>APK file + "unknown sources"</td><td>basically impossible outside TestFlight / App Store</td></tr>
+      <tr><td><strong>Content restrictions</strong></td><td>moderate</td><td>stricter (Apple rejects more)</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">What Capacitor gives us for iOS</h3>
+  <pre class="code"><span class="cmt"># One-time on Mac (inside the flight-tracker project folder)</span>
+<span class="fn">npm</span> install @capacitor/ios
+<span class="fn">npx</span> cap add ios
+<span class="cmt"># Creates ios/App/App.xcodeproj — a real native Xcode project</span></pre>
+  <p>Our scaffold already did this — <code>ios/</code> exists in the project. Web app lives in <code>ios/App/App/public/</code>, auto-synced from <code>www/</code> by <code>npx cap sync ios</code>.</p>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">Toolchain install (macOS)</h3>
+
+  <div class="timeline">
+
+    <div class="phase">
+      <div class="when">iOS Step 1 · ~60 min download</div>
+      <h3>Install Xcode from Mac App Store</h3>
+      <p>Xcode is distributed <strong>only</strong> through the Mac App Store. No Homebrew, no direct download.</p>
+      <ol>
+        <li>Open App Store → search "Xcode" → Get (it's free, ~10 GB).</li>
+        <li>Launch once. Accept license. Let it install additional components (another ~1 GB).</li>
+        <li>In terminal:
+<pre class="code"><span class="kw">sudo</span> xcode-select --switch /Applications/Xcode.app
+<span class="fn">xcodebuild</span> -version   <span class="cmt"># should print "Xcode 15.x" or newer</span></pre>
+        </li>
+        <li>Inside Xcode → Settings → Platforms → download an iOS simulator runtime (e.g. iOS 17).</li>
+      </ol>
+      <div class="kids">
+        <p><strong>Why 10 GB?</strong> Xcode includes the iPhone simulator (a tiny iPhone running inside a window), every emoji Apple has ever made, every SDK back to iPhone 1, plus debugging tools. It's a Swiss-army knife.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="when">iOS Step 2 · ~2 min</div>
+      <h3>Install CocoaPods</h3>
+      <p>Capacitor plugins are delivered via CocoaPods (Objective-C / Swift package manager).</p>
+      <pre class="code"><span class="kw">sudo</span> gem install cocoapods         <span class="cmt"># or: brew install cocoapods</span>
+<span class="fn">pod</span> --version                    <span class="cmt"># should print 1.15.x or newer</span>
+
+<span class="kw">cd</span> ios/App && <span class="fn">pod</span> install    <span class="cmt"># downloads Capacitor iOS deps</span>
+<span class="cmt"># After this, open App.xcworkspace (NOT App.xcodeproj)</span></pre>
+    </div>
+
+    <div class="phase">
+      <div class="when">iOS Step 3 · ~1 min</div>
+      <h3>Sync web app</h3>
+      <pre class="code"><span class="kw">cd</span> ~/Desktop/02_choughl/koutoub-android/flight-tracker
+<span class="fn">cp</span> -R ~/Desktop/02_choughl/koutoub/01-flight-tracker/* www/
+<span class="fn">npx</span> cap sync ios
+<span class="cmt"># Or just use: ./manage.sh → choose iOS → option 5</span></pre>
+    </div>
+
+    <div class="phase">
+      <div class="when">iOS Step 4 · ~5 min first time</div>
+      <h3>Open in Xcode + pick a simulator</h3>
+      <ol>
+        <li><code>open ios/App/App.xcworkspace</code></li>
+        <li>Top-left device selector → pick a simulator (e.g. iPhone 15).</li>
+        <li>Click the ▶ Play button (⌘R). First build is ~3 min; Simulator launches with your app.</li>
+      </ol>
+      <p>Expected: splash screen, then flight-tracker home, Arabic RTL rendered, all tabs work. Same app as Android.</p>
+    </div>
+
+    <div class="phase">
+      <div class="when">iOS Step 5 · optional</div>
+      <h3>Run on your real iPhone (free)</h3>
+      <p>You don't need the $99 Developer Program just to run on your own iPhone.</p>
+      <ol>
+        <li>Plug iPhone in via USB-C / Lightning. Trust the computer.</li>
+        <li>In Xcode → top bar → device selector → pick your iPhone.</li>
+        <li>Click ▶. Xcode will complain about signing.</li>
+        <li>Project navigator → App target → Signing &amp; Capabilities → <em>Team</em>: pick your free Apple ID (add it in Xcode → Settings → Accounts if needed).</li>
+        <li>Xcode auto-generates a dev cert + provisioning profile.</li>
+        <li>Click ▶ again. App installs on phone.</li>
+        <li>First launch: iPhone Settings → General → VPN &amp; Device Management → trust your developer cert.</li>
+      </ol>
+      <div class="blocker">
+        <strong>Limitation of free Apple ID:</strong> the signed build expires after <strong>7 days</strong>. You'll need to rebuild + re-install each week. Paying $99 gives 1-year certs and App Store access.
+      </div>
+    </div>
+
+  </div>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">Publishing to the App Store</h3>
+  <p>Parallel to the Play Store flow in section 11, but using <a href="https://appstoreconnect.apple.com">App Store Connect</a>.</p>
+
+  <div class="timeline">
+
+    <div class="phase">
+      <div class="when">App Store · Phase 1 · ~1 day</div>
+      <h3>Apple Developer Program membership</h3>
+      <ol>
+        <li>Go to <a href="https://developer.apple.com/programs/enroll/">developer.apple.com/programs/enroll</a>.</li>
+        <li>Sign in with your Apple ID.</li>
+        <li>Choose enrollment type: <strong>Individual</strong> (simpler; listed under your name) or <strong>Organization</strong> (requires DUNS number + legal entity).</li>
+        <li>Pay <strong>$99 USD / year</strong> by credit card.</li>
+        <li>Apple emails you within 24 hours when approved.</li>
+      </ol>
+    </div>
+
+    <div class="phase">
+      <div class="when">App Store · Phase 2 · ~15 min</div>
+      <h3>Create app record in App Store Connect</h3>
+      <ol>
+        <li>Log into <a href="https://appstoreconnect.apple.com">appstoreconnect.apple.com</a>.</li>
+        <li>My Apps → + → New App.</li>
+        <li>Fill:
+          <ul>
+            <li>Platform: iOS</li>
+            <li>Name: <code>Flight Tracker</code></li>
+            <li>Primary language: Arabic</li>
+            <li>Bundle ID: <code>org.workshopdiy.flighttracker</code> (must match what's in Xcode)</li>
+            <li>SKU: any unique string (e.g. <code>flighttracker-001</code>)</li>
+            <li>User Access: Full Access</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
+
+    <div class="phase">
+      <div class="when">App Store · Phase 3 · ~30 min</div>
+      <h3>Archive + upload from Xcode</h3>
+      <ol>
+        <li>In Xcode: device selector → pick <strong>Any iOS Device (arm64)</strong>.</li>
+        <li>Menu: <strong>Product → Archive</strong>. Takes ~5 min.</li>
+        <li>Window → Organizer opens. Pick the archive → <strong>Distribute App</strong>.</li>
+        <li>Choose <strong>App Store Connect</strong> → Upload.</li>
+        <li>Xcode signs + uploads (~5 min). Check App Store Connect → TestFlight tab; the build appears after processing (~15 min).</li>
+      </ol>
+    </div>
+
+    <div class="phase">
+      <div class="when">App Store · Phase 4 · ~20 min</div>
+      <h3>Fill App Store listing</h3>
+      <p>In App Store Connect → your app → App Information:</p>
+      <table class="neat">
+        <tbody>
+          <tr><td>App name</td><td>30 chars; translations per locale</td></tr>
+          <tr><td>Subtitle</td><td>30 chars — a tagline shown below the name</td></tr>
+          <tr><td>Promotional text</td><td>170 chars — changes without review</td></tr>
+          <tr><td>Description</td><td>4000 chars — same text as Play Store</td></tr>
+          <tr><td>Keywords</td><td>100 chars comma-separated — critical for search</td></tr>
+          <tr><td>Support URL</td><td>public HTTPS page</td></tr>
+          <tr><td>Privacy Policy URL</td><td>same as Android — your GitHub Pages privacy.html</td></tr>
+          <tr><td>Category</td><td>Books (primary), Education (secondary)</td></tr>
+          <tr><td>Age Rating</td><td>questionnaire like Android's content rating</td></tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top:20px"><strong>Required graphics:</strong></p>
+      <table class="neat">
+        <thead><tr><th>Asset</th><th>Dimensions</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td>App icon (in Xcode)</td><td>1024×1024 PNG, no transparency</td><td>Reuse our <code>play-store-icon-512.png</code> but upscale to 1024 (or fetch 1024 variant from workshop-logos)</td></tr>
+          <tr><td>iPhone 6.7" screenshots</td><td>1290×2796 (or 1284×2778)</td><td>Capture from iPhone 15 Pro Max simulator</td></tr>
+          <tr><td>iPhone 6.5" screenshots</td><td>1284×2778 (or 1242×2688)</td><td>Capture from iPhone 11 Pro Max simulator</td></tr>
+          <tr><td>iPad Pro 12.9" screenshots</td><td>2048×2732</td><td>Capture from iPad Pro simulator (optional if not supporting iPad)</td></tr>
+        </tbody>
+      </table>
+      <pre class="code"><span class="cmt"># Capture screenshots from booted simulator</span>
+<span class="fn">xcrun</span> simctl io booted screenshot ~/Desktop/ios-shot-1.png
+<span class="cmt"># Or via manage-ios.sh option 10</span></pre>
+    </div>
+
+    <div class="phase">
+      <div class="when">App Store · Phase 5 · ~20 min</div>
+      <h3>TestFlight beta (optional but recommended)</h3>
+      <p>Parallel to Android's Internal Testing. Lets you install via the TestFlight app without submitting for full App Review.</p>
+      <ol>
+        <li>In App Store Connect → your app → TestFlight tab.</li>
+        <li>Your uploaded build appears. Enter <strong>Test Information</strong> (email, beta description, feedback email).</li>
+        <li><strong>Internal Testing</strong> — instant access for up to 100 Apple IDs in your team. No Apple review.</li>
+        <li><strong>External Testing</strong> — up to 10,000 testers via public link. Requires one-time Apple review (~24 h).</li>
+        <li>Testers install the <strong>TestFlight</strong> app from App Store → open the invite link → install your build.</li>
+      </ol>
+    </div>
+
+    <div class="phase">
+      <div class="when">App Store · Phase 6 · ~24–48 h review</div>
+      <h3>Submit for App Store review</h3>
+      <ol>
+        <li>App Store Connect → your app → <strong>App Store</strong> tab → iOS App version.</li>
+        <li>Pick the build you uploaded from TestFlight list.</li>
+        <li>Fill <strong>App Review Information</strong>:
+          <ul>
+            <li>Contact (your name, phone, email)</li>
+            <li>Notes for reviewer (brief — "static educational content, no login, no network calls")</li>
+            <li>Demo account: not needed since there's no login</li>
+          </ul>
+        </li>
+        <li>Version release: "Manual release" (you click Release when ready) or "Automatic".</li>
+        <li>Click <strong>Add for Review</strong> → <strong>Submit for Review</strong>.</li>
+        <li>Status goes to <em>Waiting for Review</em> then <em>In Review</em> (usually within 24 h).</li>
+        <li>Review outcome within 24–48 h. If rejected, you fix + resubmit.</li>
+      </ol>
+    </div>
+
+  </div>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">Common App Store rejections</h3>
+  <table class="neat">
+    <thead><tr><th>Rejection</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>"Minimum functionality" / "just a web wrapper"</td><td>Apple is stricter than Google about web-wrapper apps. Ensure the app works fully offline, has native-feeling polish (icons, splash, animations). Consider adding one native feature (haptics, share sheet) via Capacitor plugins to demonstrate it's more than a bookmark.</td></tr>
+      <tr><td>"Metadata loading indicator"</td><td>App must not show a blank screen or loading spinner at launch beyond what's reasonable. Our splash + quick web load is fine.</td></tr>
+      <tr><td>"Missing privacy description"</td><td>Even if you don't collect data, your Info.plist should have no unneeded usage-description keys. If you accidentally request camera/location/contacts permissions without using them, rejection.</td></tr>
+      <tr><td>"Uses private API"</td><td>Capacitor doesn't — but if you add plugins, verify they don't.</td></tr>
+      <tr><td>"Name/icon resembles another app"</td><td>Unique enough; Arabic title helps differentiation.</td></tr>
+      <tr><td>"Religious content"</td><td>Educational/informational is fine. Keep it respectful, factual. Don't claim medical or financial benefits.</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">The <code>manage-ios.sh</code> menu</h3>
+  <p>The dispatcher (<code>./manage.sh</code>) asks macOS users whether they want Android or iOS. If they pick iOS, it launches <code>manage-ios.sh</code>:</p>
+  <pre class="code">./manage.sh
+<span class="cmt"># On Mac, prompts: 1) Android  2) iPhone</span>
+<span class="cmt"># Or directly:</span>
+<span class="kw">TARGET_PLATFORM</span>=ios ./manage.sh</pre>
+  <p>Options in the iOS menu:</p>
+  <ol>
+    <li>Check environment — Xcode, CLT, simulators, CocoaPods, team</li>
+    <li>Install Xcode — opens Mac App Store</li>
+    <li>(reserved)</li>
+    <li>Install CocoaPods + run <code>pod install</code></li>
+    <li>Sync web app → iOS project</li>
+    <li>Open Xcode workspace (GUI builds + archives)</li>
+    <li>Build debug for simulator (CLI — no Xcode GUI)</li>
+    <li>Archive for App Store (opens Xcode for signing)</li>
+    <li>Launch iOS Simulator</li>
+    <li>Take screenshot of simulator</li>
+    <li>Open WORKSHOP.html</li>
+    <li>Clean build artifacts</li>
+  </ol>
+
+  <hr class="soft">
+
+  <h3 style="color:#fff">Useful App Store links</h3>
+  <div class="grid grid-2">
+    <div class="card"><h4>🍎 App Store Connect</h4><p class="meta"><a href="https://appstoreconnect.apple.com">appstoreconnect.apple.com</a></p></div>
+    <div class="card"><h4>👨‍💻 Developer Program</h4><p class="meta"><a href="https://developer.apple.com/programs/">developer.apple.com/programs</a></p></div>
+    <div class="card"><h4>📦 App submission guide</h4><p class="meta"><a href="https://developer.apple.com/help/app-store-connect/manage-your-apps/">developer.apple.com/help/...</a></p></div>
+    <div class="card"><h4>✈️ TestFlight overview</h4><p class="meta"><a href="https://developer.apple.com/testflight/">developer.apple.com/testflight</a></p></div>
+    <div class="card"><h4>📜 App Review Guidelines</h4><p class="meta"><a href="https://developer.apple.com/app-store/review/guidelines/">developer.apple.com/app-store/review/guidelines</a></p></div>
+    <div class="card"><h4>⚡ Capacitor iOS docs</h4><p class="meta"><a href="https://capacitorjs.com/docs/ios">capacitorjs.com/docs/ios</a></p></div>
+  </div>
+
+  <div class="kids" style="margin-top:30px">
+    <p><strong>Realistic timeline for iOS v1:</strong> Day 0 (pay $99, apply) → Day 1 (approved) → Day 1–2 (install Xcode, build, TestFlight upload) → Day 3 (review, install on testers) → Day 4 (submit to App Store) → Day 5–6 (app is live).</p>
+    <p style="color:var(--text-dim);margin-top:8px"><em>Faster than Android's 14-day testing requirement — Apple trusts your paid membership more than Google trusts a new personal account.</em></p>
+  </div>
+</section>
+
+<!-- ======================================================== GLOSSARY -->
+<section id="glossary">
+  <h2><span class="num">15</span>Glossary for kids (and grown-ups)</h2>
+  <p class="lede">Each concept explained in one sentence.</p>
+
+  <table class="neat">
+    <tbody>
+      <tr><td><strong>APK</strong></td><td>Android Package — the file your phone installs. Think of it as a zipped-up app.</td></tr>
+      <tr><td><strong>AAB</strong></td><td>Android App Bundle — a newer, smarter format. Play Store uses it to ship only the bits your specific phone needs.</td></tr>
+      <tr><td><strong>Emulator</strong></td><td>A pretend phone running on your laptop so you can test apps without owning the real device.</td></tr>
+      <tr><td><strong>SDK</strong></td><td>Software Development Kit — the toolbox Google gives us for building Android apps.</td></tr>
+      <tr><td><strong>JDK</strong></td><td>Java Development Kit — the tools for running and compiling Java programs. Android is (mostly) Java under the hood.</td></tr>
+      <tr><td><strong>Gradle</strong></td><td>The recipe-runner. We tell it "build me an APK" and it orchestrates hundreds of little steps.</td></tr>
+      <tr><td><strong>WebView</strong></td><td>A web browser embedded inside an app, with no URL bar. It's how Capacitor shows our HTML.</td></tr>
+      <tr><td><strong>Capacitor</strong></td><td>The tiny wrapper that turns a website into an app. Same code in browser and on the phone.</td></tr>
+      <tr><td><strong>PWA</strong></td><td>Progressive Web App — a website that can be "installed" by the browser, with an icon and offline support.</td></tr>
+      <tr><td><strong>Keystore</strong></td><td>A locked box holding the secret key we use to sign our app. The Play Store uses the signature to recognise "this is the same developer".</td></tr>
+      <tr><td><strong>adb</strong></td><td>Android Debug Bridge — a command that talks to your phone from your computer. Used to install APKs, read logs, etc.</td></tr>
+      <tr><td><strong>Manifest</strong></td><td>A description file. Web apps have <code>manifest.json</code>, Android apps have <code>AndroidManifest.xml</code>. Both say "here's my icon, here's my name, here's what I need".</td></tr>
+      <tr><td><strong>Signing</strong></td><td>Adding a cryptographic signature to the AAB so Play Store can verify it came from you and hasn't been tampered with.</td></tr>
+      <tr><td><strong>Splash screen</strong></td><td>The short image shown while the app is loading — like a logo that says "wait a sec, I'm coming".</td></tr>
+      <tr><td><strong>RTL</strong></td><td>Right-to-Left — how Arabic (and Hebrew) reads. The whole UI flips direction to match.</td></tr>
+      <tr><td><strong>Internal Testing</strong></td><td>A private track on Play Store where you invite testers by email. No public visibility, no review delay.</td></tr>
+      <tr><td><strong>Xcode</strong></td><td>Apple's big development app — the only way to build iPhone apps. Free, but ~10 GB, and only runs on Mac.</td></tr>
+      <tr><td><strong>Simulator</strong></td><td>iOS equivalent of the Android emulator — a pretend iPhone running inside a window on your Mac.</td></tr>
+      <tr><td><strong>IPA</strong></td><td>iOS App Archive — the iPhone equivalent of APK/AAB. What gets uploaded to App Store Connect.</td></tr>
+      <tr><td><strong>TestFlight</strong></td><td>Apple's beta-testing track, parallel to Play Store's Internal Testing. Testers install a separate "TestFlight" app and access beta builds through it.</td></tr>
+      <tr><td><strong>CocoaPods</strong></td><td>The Swift/Objective-C package manager (like npm for iOS native libraries). Capacitor plugins install via <code>pod install</code>.</td></tr>
+      <tr><td><strong>Provisioning profile</strong></td><td>A file Apple issues that lists which devices your dev build can install on. Xcode generates these for you automatically once you sign in.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+</main>
+
+<!-- ======================================================== FOOTER -->
+<footer>
+  <div>Generated as part of the <strong>Flight Tracker → Android</strong> session · 24 April 2026</div>
+  <div class="ar">رحم الله الشيخ محمد الغزالي وجزاه عنا خير الجزاء 🤲</div>
+  <div>Powered by <a href="https://workshop-diy.org">workshop-diy.org</a></div>
+</footer>
+
+</body>
+</html>

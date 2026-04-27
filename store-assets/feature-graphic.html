@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1024,initial-scale=1">
+<title>Flight Tracker — feature graphic</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1024px; height: 500px; overflow: hidden; }
+  body {
+    background: linear-gradient(135deg, #542276 0%, #431E5B 50%, #984DCB 100%);
+    display: flex;
+    align-items: center;
+    padding: 0 60px;
+    color: #fff;
+    position: relative;
+  }
+  /* Decorative Islamic geometry tiles */
+  body::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle at 15% 30%, rgba(255,255,255,0.05) 1px, transparent 2px),
+      radial-gradient(circle at 85% 70%, rgba(255,255,255,0.04) 1px, transparent 2px),
+      radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03) 1px, transparent 2px);
+    background-size: 80px 80px, 60px 60px, 100px 100px;
+    pointer-events: none;
+  }
+
+  .left {
+    flex: 1;
+    display: flex; flex-direction: column; gap: 16px;
+    position: relative; z-index: 2;
+  }
+  .kicker {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+    direction: ltr; text-align: right;
+  }
+  .title {
+    font-family: 'Amiri', serif;
+    font-size: 6rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  .subtitle {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.8rem;
+    color: rgba(255,255,255,0.9);
+    direction: ltr; text-align: right;
+  }
+  .tagline {
+    font-family: 'Amiri', serif;
+    font-size: 1.5rem;
+    color: rgba(255,255,255,0.85);
+    margin-top: 8px;
+  }
+  .attribution {
+    font-family: 'Amiri', serif;
+    font-size: 1.05rem;
+    color: rgba(255,255,255,0.6);
+    margin-top: 12px;
+    direction: rtl; text-align: right;
+  }
+
+  .right {
+    position: relative;
+    width: 360px; height: 360px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ring {
+    position: absolute; inset: 0;
+    border: 6px solid rgba(255,255,255,0.4);
+    border-radius: 50%;
+    box-shadow: 0 0 60px color-mix(in srgb, #984DCB 50%, transparent), inset 0 0 40px rgba(255,255,255,0.1);
+  }
+  .ring::before, .ring::after {
+    content: '';
+    position: absolute; inset: 30px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .ring::after { inset: 60px; border-color: rgba(255,255,255,0.15); }
+  .emoji {
+    font-size: 11rem;
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.5));
+    z-index: 3;
+  }
+</style>
+</head>
+<body>
+  <div class="left">
+    <div class="kicker">Planes in the Sky · Planes in the Sky</div>
+    <div class="title">متتبع الطائرات</div>
+    <div class="subtitle">Planes in the Sky — micro:bit & Bluetooth for kids</div>
+    <div class="tagline">متتبع الطائرات — micro:bit & بلوتوث للأطفال</div>
+    <div class="attribution">عربي · English · Français</div>
+  </div>
+  <div class="right">
+    <div class="ring"></div>
+    <div class="emoji">✈</div>
+  </div>
+</body>
+</html>
